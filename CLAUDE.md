@@ -11,7 +11,7 @@ Apollo Save Tool for PS4: a homebrew C app (OpenOrbis SDK + SDL2) to manage save
 There are no tests and no linter. A successful build is the only automated check (CI: `.github/workflows/build.yml`).
 
 ```sh
-make              # build eboot.bin -> pkg.gp4 -> IV0000-APOL00004_00-APOLLO0000000PS4.pkg
+make              # build eboot.bin -> pkg.gp4 -> IV0000-LUCE00001_00-LUCENTE000000PS4.pkg
 make DEBUGLOG=1   # defines APOLLO_ENABLE_LOGGING (see below)
 make createzip    # download latest patch pack to assets/misc/appdata.zip (bundled into the pkg)
 make clean
@@ -24,13 +24,13 @@ make clean
 
 ### Debug builds
 
-`DEBUGLOG=1` changes runtime paths (`include/saves.h`): assets are loaded from `/data/apollo/debug/` instead of the app sandbox, and the splash/intro animations are skipped. The intent is running `eboot.bin` through a PS4Load listener (`export PS3LOAD=tcp:<ps4-ip>`). `LOG()` (`dbglogger_log`) output goes to UDP multicast `239.255.0.100:30000`:
+`DEBUGLOG=1` changes runtime paths (`include/saves.h`): assets are loaded from `/data/lucente/debug/` instead of the app sandbox, and the splash/intro animations are skipped. The intent is running `eboot.bin` through a PS4Load listener (`export PS3LOAD=tcp:<ps4-ip>`). `LOG()` (`dbglogger_log`) output goes to UDP multicast `239.255.0.100:30000`:
 
 ```sh
 socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
 ```
 
-In release builds, logging only happens if the user enables the debug-log setting (written to `/data/apollo/apollo.log`).
+In release builds, logging only happens if the user enables the debug-log setting (written to `/data/lucente/lucente.log`).
 
 ## Architecture
 
@@ -41,12 +41,12 @@ In release builds, logging only happens if the user enables the debug-log settin
 - Each browsable source (HDD, USB, trophies, online DB, user tools, PS1 VMC, PS2 VMC, DC VMU) is a `save_list_t` defined in `main.c`. It holds three callbacks: `UpdatePath`, `ReadList` (builds a `list_t` of `save_entry_t`), and `ReadCodes` (builds the actions for one entry). All of them share the generic `doSaveMenu()`.
 - The `Read*List` / `Read*Codes` implementations live in `source/saves.c`. An entry's `codes` list holds `code_entry_t` items (type from apollo-lib) of two kinds:
   - **Commands** (`PATCH_COMMAND`), built with `_createCmdCode()`. `code->codes[0]` is a `cmd_code_enum` value (`include/saves.h`), and an optional `codes[1]` byte is an argument, typically the USB device index. Options attached with `_createOptions()` produce sub-choices.
-  - **Cheats** parsed by apollo-lib (`apollo_load_code_list`) from `/data/apollo/data/<TITLE_ID>.savepatch` (Save Wizard / BSD format), plus SFO patches and trophy lock/unlock.
+  - **Cheats** parsed by apollo-lib (`apollo_load_code_list`) from `/data/lucente/data/<TITLE_ID>.savepatch` (Save Wizard / BSD format), plus SFO patches and trophy lock/unlock.
 - Activating a command calls `execCodeCommand()` in `source/exec_cmd.c`, a big `switch` on `codecmd[0]` that calls static helpers in the same file. Cheats are applied through `apply_cheat_patches()` → `apollo_apply_code()`, with `orbis_host_callback` supplying host values such as account ID and PSID.
 - **Adding a new action** usually means: a new enum value in `cmd_code_enum`, a `_createCmdCode(...)` entry in the relevant `Read*Codes` in `saves.c`, a `case` in `execCodeCommand`, and new translatable strings (see Localization).
 
 ### Save mounting
-HDD saves and encrypted (`SAVE_FLAG_LOCKED`) USB saves must be mounted with `orbis_SaveMount()` before access. Code then temporarily replaces `save->path` with `APOLLO_SANDBOX_PATH` (`/data/apollo/mount/<mount>/`), and must restore the path and call `orbis_SaveUmount()` afterwards. `ReadCodes` and `execCodeCommand` both follow this pattern. All on-console paths (USB, fake USB `/data/fakeusb/`, HDD, DB locations) are `#define`s in `include/saves.h`.
+HDD saves and encrypted (`SAVE_FLAG_LOCKED`) USB saves must be mounted with `orbis_SaveMount()` before access. Code then temporarily replaces `save->path` with `APOLLO_SANDBOX_PATH` (`/data/lucente/mount/<mount>/`), and must restore the path and call `orbis_SaveUmount()` afterwards. `ReadCodes` and `execCodeCommand` both follow this pattern. All on-console paths (USB, fake USB `/data/fakeusb/`, HDD, DB locations) are `#define`s in `include/saves.h`.
 
 ### Memory-card images
 - PS1: `ps1card.c` (port of MemcardRex).
@@ -70,7 +70,7 @@ The patch engine, the code/list types (`code_entry_t`, `list_t`, `option_entry_t
 
 - User-facing strings are wrapped in `_("...")`, a mini18n runtime lookup.
 - Static initializers (e.g. `menu_options[]` in `settings.c`) use `_i18n("...")`, a no-op marker for extraction. Those strings are translated later through `mini18n()` in `initMenuOptions()`.
-- The template is `docs/translate.po` (Poedit, keywords `_;_i18n`, base path `source/`). Translations are `assets/misc/lang_<code>.po` (12 languages). At runtime, `/data/apollo/data/lang_<code>.po` overrides the bundled file.
+- The template is `docs/translate.po` (Poedit, keywords `_;_i18n`, base path `source/`). Translations are `assets/misc/lang_<code>.po` (12 languages). At runtime, `/data/lucente/data/lang_<code>.po` overrides the bundled file.
 - When adding or changing strings, update `docs/translate.po` **and** every `assets/misc/lang_*.po`, as past commits do.
 
 ## Releases
@@ -80,4 +80,4 @@ To bump the version, update all three of:
 - `APOLLO_VERSION` in `include/settings.h` (format `"2.4.0"`)
 - `CHANGELOG.md`
 
-A change to `APOLLO_VERSION` makes the app re-extract the bundled `appdata.zip` into `/data/apollo/data/` on first launch.
+A change to `APOLLO_VERSION` makes the app re-extract the bundled `appdata.zip` into `/data/lucente/data/` on first launch.

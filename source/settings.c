@@ -168,7 +168,7 @@ static void ftp_url_callback(int sel)
 		FILE* fp = fopen(APOLLO_LOCAL_CACHE "users.ftp", "w");
 		if (fp)
 		{
-			fprintf(fp, "; Apollo Save Tool (" APOLLO_PLATFORM ") v" APOLLO_VERSION "\r\n%s\r\n", tmp);
+			fprintf(fp, "; Lucente Save Tool (" APOLLO_PLATFORM ") v" APOLLO_VERSION "\r\n%s\r\n", tmp);
 			fclose(fp);
 		}
 
@@ -217,7 +217,7 @@ void update_callback(int sel)
     if (!apollo_config.update)
         return;
 
-	LOG("checking latest Apollo version at %s", APOLLO_UPDATE_URL);
+	LOG("checking latest version at %s", APOLLO_UPDATE_URL);
 
 	if (!http_download(APOLLO_UPDATE_URL, NULL, APOLLO_LOCAL_CACHE "ver.check", 0))
 	{
@@ -231,7 +231,7 @@ void update_callback(int sel)
 
 	LOG("received %ld bytes", strlen(buffer));
 
-	static const char find[] = "\"name\":\"Apollo Save Tool v";
+	static const char find[] = "\"name\":\"Lucente Save Tool v";
 	const char* start = strstr(buffer, find);
 	if (!start)
 	{
@@ -274,7 +274,7 @@ void update_callback(int sel)
 
 	if (show_dialog(DIALOG_TYPE_YESNO, _("New version available! Download update?")))
 	{
-		char* pkg_path = (dir_exists("/data/pkg") == SUCCESS) ? "/data/pkg/apollo-ps4.pkg" : "/data/apollo-ps4.pkg";
+		char* pkg_path = (dir_exists("/data/pkg") == SUCCESS) ? "/data/pkg/lucente-ps4.pkg" : "/data/lucente-ps4.pkg";
 		if (http_download(start, NULL, pkg_path, 1))
 			show_message(_("Update downloaded to %s"), pkg_path);
 		else
@@ -297,8 +297,8 @@ static void log_callback(int sel)
 		return;
 	}
 
-	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
-	show_message("%s\n\n%s", _("Debug Logging Enabled!"), APOLLO_PATH "apollo.log");
+	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "lucente.log", 0);
+	show_message("%s\n\n%s", _("Debug Logging Enabled!"), APOLLO_PATH "lucente.log");
 }
 
 static int updateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details, uint32_t userParam)
@@ -341,7 +341,7 @@ int save_app_settings(app_config_t* config)
 	mount.blocks = ORBIS_SAVE_DATA_BLOCKS_MIN2;
 	mount.mountMode = (ORBIS_SAVE_DATA_MOUNT_MODE_CREATE2 | ORBIS_SAVE_DATA_MOUNT_MODE_RDWR | ORBIS_SAVE_DATA_MOUNT_MODE_COPY_ICON);
 
-	LOG("Apollo Save Tool %s v%s - Patch Engine v%s", APOLLO_PLATFORM, APOLLO_VERSION, APOLLO_LIB_VERSION);
+	LOG("Lucente Save Tool %s v%s - Patch Engine v%s", APOLLO_PLATFORM, APOLLO_VERSION, APOLLO_LIB_VERSION);
 	if (sceSaveDataMount2(&mount, &mountResult) < 0) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
@@ -351,7 +351,7 @@ int save_app_settings(app_config_t* config)
 	snprintf(filePath, sizeof(filePath), APOLLO_SETTING_PATH "settings.bin", mountResult.mountPathName);
 	write_buffer(filePath, (uint8_t*) config, sizeof(app_config_t));
 
-	updateSaveParams(mountResult.mountPathName, "Apollo Save Tool", _("User Settings"), "www.bucanero.com.ar", 0);
+	updateSaveParams(mountResult.mountPathName, "Lucente Save Tool", _("User Settings"), "www.bucanero.com.ar", 0);
 	if (sceSaveDataUmount((void*)&mountResult.mountPathName) < 0)
 	{
 		LOG("UMOUNT ERROR");

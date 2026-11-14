@@ -51,7 +51,7 @@ void update_db_path(char *p);
 void update_vmc_path(char *p);
 
 app_config_t apollo_config = {
-    .app_name = "APOLLO",
+    .app_name = "LUCENTE",
     .app_ver = {0},
     .save_db = ONLINE_URL,
     .ftp_url = "",
@@ -435,7 +435,7 @@ void update_usb_path(char* path)
 
 	for (int i = 0; i < MAX_USB_DEVICES; i++)
 	{
-		sprintf(path, USB_PATH ".apollo", i);
+		sprintf(path, USB_PATH ".lucente", i);
 
 		FILE *fp = fopen(path, "w");
 		if (!fp)
@@ -679,8 +679,8 @@ s32 main(s32 argc, const char* argv[])
 
 	if (apollo_config.dbglog)
 	{
-		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "apollo.log", 0);
-		notify_popup(NOTIFICATION_ICON_DEFAULT, "%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "apollo.log");
+		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "lucente.log", 0);
+		notify_popup(NOTIFICATION_ICON_DEFAULT, "%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "lucente.log");
 	}
 
 	// Unpack application data on first run
