@@ -1835,6 +1835,205 @@ static void resignAllSaves(const save_entry_t* save, int all)
 		show_message(_("All saves successfully resigned!"));
 }
 
+typedef struct
+{
+	char* dir;      // full source folder, ends with '/'
+	char* name;     // encrypted save file name (without .bin)
+} import_save_t;
+
+// Collects every encrypted save (file + file.bin sealed key) found under a folder tree
+static void _find_encrypted_saves(const char* dir_path, list_t* list)
+{
+	DIR *d;
+	struct dirent *dir;
+	char path[1024];
+	uint64_t size;
+
+	d = opendir(dir_path);
+	if (!d)
+		return;
+
+	while ((dir = readdir(d)) != NULL)
+	{
+		// skip ".", ".." and hidden files (macOS "._*" resource forks, .DS_Store)
+		if (dir->d_name[0] == '.')
+			continue;
+
+		if (dir->d_type == DT_DIR)
+		{
+			snprintf(path, sizeof(path), "%s%s/", dir_path, dir->d_name);
+			_find_encrypted_saves(path, list);
+			continue;
+		}
+
+		size_t len = strlen(dir->d_name);
+		if (dir->d_type != DT_REG || (len > 4 && strcasecmp(dir->d_name + len - 4, ".bin") == 0))
+			continue;
+
+		// an encrypted save needs its 96-byte sealed key file
+		snprintf(path, sizeof(path), "%s%s.bin", dir_path, dir->d_name);
+		if (get_file_size(path, &size) < 0 || size != 0x60)
+			continue;
+
+		import_save_t* item = malloc(sizeof(import_save_t));
+		item->dir = strdup(dir_path);
+		item->name = strdup(dir->d_name);
+		list_append(list, item);
+	}
+
+	closedir(d);
+}
+
+static int _resign_import_save(const import_save_t* item, const char* src_root, const char* dst_root, sfo_patch_t* patch)
+{
+	int ret = 0;
+	char src[1024], dst[1024];
+	char tmp_file[256], tmp_key[256];
+	char title_id[10];
+	char mount[ORBIS_SAVE_DATA_DIRNAME_DATA_MAXSIZE];
+	uint8_t key_hdr[0x10];
+	save_entry_t tmp_save;
+
+	// the save's parent folder is the Title ID (e.g. .../CUSA09171/<save>)
+	snprintf(src, sizeof(src), "%s", item->dir);
+	src[strlen(src) - 1] = 0;
+	snprintf(title_id, sizeof(title_id), "%.9s", strrchr(src, '/') ? strrchr(src, '/') + 1 : src);
+
+	snprintf(src, sizeof(src), "%s%s.bin", item->dir, item->name);
+	if (read_file(src, key_hdr, sizeof(key_hdr)) < 0 || get_max_pfskey_ver() < key_hdr[8])
+	{
+		LOG("Error: (%s) requires firmware %s", src, get_fw_by_pfskey_ver(key_hdr[8]));
+		return 0;
+	}
+
+	// Work on a copy stored on the HDD: the source is left untouched,
+	// and the mount paths stay short no matter how deep the source tree is
+	snprintf(tmp_file, sizeof(tmp_file), IMPORT_TMP_PATH "%s", item->name);
+	snprintf(tmp_key, sizeof(tmp_key), IMPORT_TMP_PATH "%s.bin", item->name);
+
+	if (copy_file(src, tmp_key) != SUCCESS)
+		goto end;
+
+	snprintf(src, sizeof(src), "%s%s", item->dir, item->name);
+	if (copy_file(src, tmp_file) != SUCCESS)
+		goto end;
+
+	memset(&tmp_save, 0, sizeof(tmp_save));
+	tmp_save.path = IMPORT_TMP_PATH;
+	tmp_save.title_id = title_id;
+	tmp_save.dir_name = item->name;
+
+	if (!orbis_SaveMount(&tmp_save, SAVE_FLAG_LOCKED, mount))
+	{
+		LOG("Error: can't mount (%s)", src);
+		goto end;
+	}
+
+	snprintf(dst, sizeof(dst), APOLLO_SANDBOX_PATH "sce_sys/param.sfo", mount);
+	ret = (patch_sfo(dst, patch) == SUCCESS);
+	ret &= orbis_SaveUmount(mount);
+
+	if (!ret)
+	{
+		LOG("Error: can't resign (%s)", src);
+		goto end;
+	}
+
+	// Copy to the destination, keeping the original folder structure
+	snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->dir + strlen(src_root), item->name);
+	LOG("Copying resigned save to <%s>...", dst);
+	ret = (copy_file(tmp_file, dst) == SUCCESS);
+
+	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->dir + strlen(src_root), item->name);
+	ret &= (copy_file(tmp_key, dst) == SUCCESS);
+
+end:
+	unlink_secure(tmp_file);
+	unlink_secure(tmp_key);
+
+	return ret;
+}
+
+static void resignImportFolder(const char* usb_path)
+{
+	char src_root[256], dst_root[256];
+	int done = 0, err_count = 0;
+	uint64_t progress = 0;
+	list_node_t *node;
+	import_save_t *item;
+	list_t *list;
+	sfo_patch_t patch = {
+		.user_id = apollo_config.user_id,
+		.psid = (u8*) apollo_config.psid,
+		.account_id = apollo_config.account_id,
+	};
+
+	if (!apollo_config.account_id)
+	{
+		show_message("%s\n%s", _("Error! The current user has no Account ID."), _("Activate the account first (User Tools)."));
+		return;
+	}
+
+	snprintf(src_root, sizeof(src_root), "%s" IMPORT_PATH_USB, usb_path);
+	snprintf(dst_root, sizeof(dst_root), "%s" ENC_SAVES_PATH_USB "%016lx/", usb_path, apollo_config.account_id);
+
+	if (dir_exists(src_root) != SUCCESS)
+	{
+		show_message("%s\n%s", _("Error! Import folder is not available:"), src_root);
+		return;
+	}
+
+	init_loading_screen(_("Searching for save games..."));
+	list = list_alloc();
+	_find_encrypted_saves(src_root, list);
+	stop_loading_screen();
+
+	if (!list_count(list))
+	{
+		list_free(list);
+		show_message("%s\n%s", _("No encrypted save games found in:"), src_root);
+		return;
+	}
+
+	if (!show_dialog(DIALOG_TYPE_YESNO, "%s %zu\n\n%s\n%s", _("Save games found:"), list_count(list), _("Resign and copy them to:"), dst_root))
+	{
+		for (node = list_head(list); (item = list_get(node)); node = list_next(node))
+		{
+			free(item->dir);
+			free(item->name);
+			free(item);
+		}
+		list_free(list);
+		return;
+	}
+
+	init_progress_bar(_("Resigning all saves..."));
+	mkdirs(IMPORT_TMP_PATH);
+
+	LOG("Resigning %zu saves from '%s' to '%s'...", list_count(list), src_root, dst_root);
+	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
+	{
+		update_progress_bar(progress++, list_count(list), item->name);
+
+		if (_resign_import_save(item, src_root, dst_root, &patch))
+			done++;
+		else
+			err_count++;
+
+		free(item->dir);
+		free(item->name);
+		free(item);
+	}
+
+	end_progress_bar();
+	list_free(list);
+
+	if (err_count)
+		show_message("%s %d\n" "%s %d\n\n%s", _("Saves resigned:"), done, _("Errors:"), err_count, dst_root);
+	else
+		show_message("%s %d\n\n%s", _("Saves resigned:"), done, dst_root);
+}
+
 static void exportZipDB(const char* path)
 {
 	char *tmp;
@@ -2091,6 +2290,11 @@ void execCodeCommand(code_entry_t* code, const char* codecmd)
 		case CMD_RESIGN_SAVES:
 		case CMD_RESIGN_ALL_SAVES:
 			resignAllSaves(selected_entry, codecmd[0] == CMD_RESIGN_ALL_SAVES);
+			code->activated = 0;
+			break;
+
+		case CMD_RESIGN_IMPORT_FOLDER:
+			resignImportFolder(selected_entry->path);
 			code->activated = 0;
 			break;
 

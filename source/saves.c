@@ -1524,9 +1524,7 @@ int ReadOnlineSaves(save_entry_t * game)
 
 list_t * ReadBackupList(const char* userPath)
 {
-	char tmp[32];
 	save_entry_t * item;
-	code_entry_t * cmd;
 	list_t *list = list_alloc();
 
 	item = _createSaveEntry(SAVE_FLAG_ZIP, CHAR_ICON_ZIP " ", _("Extract Archives (RAR, Zip, 7z)"));
@@ -1537,25 +1535,6 @@ list_t * ReadBackupList(const char* userPath)
 	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " ", _("Activate PS4 Accounts"));
 	asprintf(&item->path, "%s%s", APOLLO_PATH, OWNER_XML_FILE);
 	item->type = FILE_TYPE_ACT;
-	list_append(list, item);
-
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_USER " ", _("App.db Database Management"));
-	item->path = strdup(APP_DB_PATH_HDD);
-	strrchr(item->path, '/')[1] = 0;
-	item->type = FILE_TYPE_SQL;
-	list_append(list, item);
-
-	item = _createSaveEntry(0, CHAR_ICON_NET " ", _("Network Tools (Downloader, Web Server)"));
-	item->path = strdup("/data/");
-	item->type = FILE_TYPE_NET;
-	list_append(list, item);
-
-	item = _createSaveEntry(SAVE_FLAG_PS4, CHAR_ICON_LOCK " ", _("Show Parental Security Passcode"));
-	item->codes = list_alloc();
-	cmd = _createCmdCode(PATCH_NULL, CHAR_ICON_LOCK " ", "Security Passcode: ????????", CMD_CODE_NULL);
-	regMgr_GetParentalPasscode(tmp);
-	strncpy(cmd->name + 21, tmp, 8);
-	list_append(item->codes, cmd);
 	list_append(list, item);
 
 /*
@@ -2171,6 +2150,9 @@ list_t * ReadUsbList(const char* userPath)
 	item->dir_name = malloc(sizeof(void**));
 	((void**)item->dir_name)[0] = list;
 
+	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " ", _("Resign save folder (PS4/IMPORT) to PS4/SAVEDATA"), CMD_RESIGN_IMPORT_FOLDER);
+	list_append(item->codes, cmd);
+
 	cmd = _createCmdCode(PATCH_COMMAND, CHAR_ICON_SIGN " ", _("Resign selected Saves"), CMD_RESIGN_SAVES);
 	list_append(item->codes, cmd);
 
@@ -2192,19 +2174,9 @@ list_t * ReadUsbList(const char* userPath)
 
 	snprintf(path, sizeof(path), "%sPS4/APOLLO/", userPath);
 	read_usb_savegames(path, list);
-	read_inner_vmc2_files(list);
 
-	snprintf(path, sizeof(path), "%sPS4/SAVEDATA/", userPath);
+	snprintf(path, sizeof(path), "%s" ENC_SAVES_PATH_USB, userPath);
 	read_usb_encrypted_savegames(path, list);
-
-	snprintf(path, sizeof(path), "%s%s", userPath, VMC_PS2_PATH_USB);
-	scan_vmc_files(path, NULL, list);
-
-	snprintf(path, sizeof(path), "%s%s", userPath, VMC_PS1_PATH_USB);
-	scan_vmc_files(path, NULL, list);
-
-	snprintf(path, sizeof(path), "%s%s", userPath, VMC_DC_PATH_USB);
-	read_vmu_files(path, list);
 
 	return list;
 }
@@ -2256,11 +2228,6 @@ list_t * ReadUserList(const char* userPath)
 	appdb = open_sqlite_db(APP_DB_PATH_HDD);
 	read_hdd_savegames(userPath, list, appdb);
 	sqlite3_close(appdb);
-
-	read_inner_vmc2_files(list);
-	// HDD cards are plain files, not inside a PS4 save: no SAVE_FLAG_HDD, or
-	// opening them would try to mount a save container that doesn't exist
-	read_vmu_files(VMC_DC_PATH_HDD, list);
 
 	return list;
 }

@@ -31,6 +31,9 @@
 #define DC_SAVES_PATH_USB       "DC/SAVEDATA/"
 #define PSV_SAVES_PATH_USB      "PS3/EXPORT/PSV/"
 #define TROPHIES_PATH_USB       "PS4/EXPORT/TROPHY/"
+#define IMPORT_PATH_USB         "PS4/IMPORT/"
+#define ENC_SAVES_PATH_USB      "PS4/SAVEDATA/"
+#define IMPORT_TMP_PATH         APOLLO_PATH "tmp/import/"
 
 #define SAVES_PATH_HDD          "/user/home/%08x/savedata/"
 #define SAVE_ICON_PATH_HDD      "/user/home/%08x/savedata_meta/user/"
@@ -104,6 +107,7 @@ enum cmd_code_enum
 // Bulk commands
     CMD_RESIGN_SAVES,
     CMD_RESIGN_ALL_SAVES,
+    CMD_RESIGN_IMPORT_FOLDER,
     CMD_COPY_SAVES_USB,
     CMD_COPY_ALL_SAVES_USB,
     CMD_COPY_SAVES_HDD,

@@ -1196,3 +1196,43 @@ msgstr "Esporta la memory card in formato Nexus .DCM"
 #: exec_cmd.c
 msgid "Error exporting memory card:"
 msgstr "Errore durante l'esportazione della memory card:"
+
+#: saves.c
+msgid "Resign save folder (PS4/IMPORT) to PS4/SAVEDATA"
+msgstr "Firma la cartella dei salvataggi (PS4/IMPORT) in PS4/SAVEDATA"
+
+#: exec_cmd.c
+msgid "Error! The current user has no Account ID."
+msgstr "Errore! L'utente corrente non ha un Account ID."
+
+#: exec_cmd.c
+msgid "Activate the account first (User Tools)."
+msgstr "Attiva prima l'account (Strumenti utente)."
+
+#: exec_cmd.c
+msgid "Error! Import folder is not available:"
+msgstr "Errore! La cartella di importazione non è disponibile:"
+
+#: exec_cmd.c
+msgid "Searching for save games..."
+msgstr "Ricerca dei salvataggi in corso..."
+
+#: exec_cmd.c
+msgid "No encrypted save games found in:"
+msgstr "Nessun salvataggio cifrato trovato in:"
+
+#: exec_cmd.c
+msgid "Save games found:"
+msgstr "Salvataggi trovati:"
+
+#: exec_cmd.c
+msgid "Resign and copy them to:"
+msgstr "Firmarli e copiarli in:"
+
+#: exec_cmd.c
+msgid "Saves resigned:"
+msgstr "Salvataggi firmati:"
+
+#: exec_cmd.c
+msgid "Errors:"
+msgstr "Errori:"

@@ -1,5 +1,5 @@
 # Package metadata.
-TITLE       := Apollo Save Tool
+TITLE       := Lucente Save Tool
 VERSION     := 02.40
 TITLE_ID    := APOL00004
 CONTENT_ID  := IV0000-APOL00004_00-APOLLO0000000PS4

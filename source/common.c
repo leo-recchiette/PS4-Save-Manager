@@ -91,7 +91,7 @@ int unlink_secure(const char *path)
 */
 int mkdirs(const char* dir)
 {
-    char path[256];
+    char path[1024];
     snprintf(path, sizeof(path), "%s", dir);
 
     char* ptr = strrchr(path, '/');

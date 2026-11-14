@@ -588,14 +588,27 @@ static void doSaveMenu(save_list_t * save_list)
 	Draw_UserCheatsMenu(save_list, menu_sel, 0xFF);
 }
 
+// Trophies and Online DB are not available in this build
+static int isMainMenuHidden(int sel)
+{
+	return (sel + 1 == MENU_TROPHIES || sel + 1 == MENU_ONLINE_DB);
+}
+
 static void doMainMenu(void)
 {
+	if (isMainMenuHidden(menu_sel))
+		menu_sel = MENU_USB_SAVES - 1;
+
 	// Check the pads.
 	if(orbisPadGetButtonHold(ORBIS_PAD_BUTTON_LEFT))
-		move_selection_back(MENU_CREDITS, 1);
+	{
+		do { move_selection_back(MENU_CREDITS, 1); } while (isMainMenuHidden(menu_sel));
+	}
 
 	else if(orbisPadGetButtonHold(ORBIS_PAD_BUTTON_RIGHT))
-		move_selection_fwd(MENU_CREDITS, 1);
+	{
+		do { move_selection_fwd(MENU_CREDITS, 1); } while (isMainMenuHidden(menu_sel));
+	}
 
 	else if (orbisPadGetButtonPressed(ORBIS_PAD_BUTTON_CROSS))
 	{

@@ -1193,3 +1193,43 @@ msgstr "將記憶卡匯出為 Nexus .DCM"
 #: exec_cmd.c
 msgid "Error exporting memory card:"
 msgstr "匯出記憶卡時發生錯誤："
+
+#: saves.c
+msgid "Resign save folder (PS4/IMPORT) to PS4/SAVEDATA"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Error! The current user has no Account ID."
+msgstr ""
+
+#: exec_cmd.c
+msgid "Activate the account first (User Tools)."
+msgstr ""
+
+#: exec_cmd.c
+msgid "Error! Import folder is not available:"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Searching for save games..."
+msgstr ""
+
+#: exec_cmd.c
+msgid "No encrypted save games found in:"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Save games found:"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Resign and copy them to:"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Saves resigned:"
+msgstr ""
+
+#: exec_cmd.c
+msgid "Errors:"
+msgstr ""

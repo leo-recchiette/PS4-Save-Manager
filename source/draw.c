@@ -302,18 +302,12 @@ static void drawJars(uint8_t alpha)
 	SetFontSize(APP_FONT_SIZE_JARS);
 	SetCurrentFont(font_adonais_regular);
 
-	//Trophies
-	drawJar(jar_trophy_png_index, jar_empty_png_x, jar_empty_png_y, (alpha == 0xFF ? "Trophies" : ""), alpha);
-
 	//USB save
 	drawJar(jar_usb_png_index, jar_usb_png_x, jar_usb_png_y, (alpha == 0xFF ? "USB Saves" : ""), alpha);
 	
 	//HDD save
 	drawJar(jar_hdd_png_index, jar_hdd_png_x, jar_hdd_png_y, (alpha == 0xFF ? "HDD Saves" : ""), alpha);
 
-	//Online cheats
-	drawJar(jar_db_png_index, jar_db_png_x, jar_db_png_y, (alpha == 0xFF ? (apollo_config.online_opt ? "FTP Server" : "Online DB") : ""), alpha);
-	
 	//User Backup
 	drawJar(jar_bup_png_index, jar_bup_png_x, jar_bup_png_y, (alpha == 0xFF ? "User Tools" : ""), alpha);
 

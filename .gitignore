@@ -60,3 +60,7 @@ dkms.conf
 /**/sce_sys/
 /**/build/
 /**/Debug/
+
+# Local files
+.DS_Store
+Resident Evil 2 Remake Save Set/
