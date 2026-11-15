@@ -1,5 +1,5 @@
 /* 
-	PS4 Save Manager - main.c
+	PS4 Save Signer - main.c
 */
 
 #include <stdio.h>
@@ -33,7 +33,7 @@
 
 
 app_config_t apollo_config = {
-    .app_name = "LUCENTE",
+    .app_name = "PS4SS",
     .app_ver = {0},
     .doAni = 1,
     .update = 1,
@@ -204,7 +204,7 @@ void update_usb_path(char* path)
 
 	for (int i = 0; i < MAX_USB_DEVICES; i++)
 	{
-		sprintf(path, USB_PATH ".lucente", i);
+		sprintf(path, USB_PATH ".ps4-save-signer", i);
 
 		FILE *fp = fopen(path, "w");
 		if (!fp)
@@ -372,8 +372,8 @@ s32 main(s32 argc, const char* argv[])
 
 	if (apollo_config.dbglog)
 	{
-		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "lucente.log", 0);
-		notify_popup(NOTIFICATION_ICON_DEFAULT, "%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "lucente.log");
+		dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "ps4-save-signer.log", 0);
+		notify_popup(NOTIFICATION_ICON_DEFAULT, "%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "ps4-save-signer.log");
 	}
 
 	// Unpack the bundled save patches (cheats) on first run of each version

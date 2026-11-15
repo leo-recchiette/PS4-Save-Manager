@@ -98,7 +98,7 @@ void update_callback(int sel)
 
 	LOG("received %ld bytes", strlen(buffer));
 
-	static const char find[] = "\"name\":\"PS4 Save Manager v";
+	static const char find[] = "\"name\":\"PS4 Save Signer v";
 	const char* start = strstr(buffer, find);
 	if (!start)
 	{
@@ -141,7 +141,7 @@ void update_callback(int sel)
 
 	if (show_dialog(DIALOG_TYPE_YESNO, _("New version available! Download update?")))
 	{
-		char* pkg_path = (dir_exists("/data/pkg") == SUCCESS) ? "/data/pkg/ps4-save-manager.pkg" : "/data/ps4-save-manager.pkg";
+		char* pkg_path = (dir_exists("/data/pkg") == SUCCESS) ? "/data/pkg/ps4-save-signer.pkg" : "/data/ps4-save-signer.pkg";
 		if (http_download(start, NULL, pkg_path, 1))
 			show_message(_("Update downloaded to %s"), pkg_path);
 		else
@@ -164,8 +164,8 @@ static void log_callback(int sel)
 		return;
 	}
 
-	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "lucente.log", 0);
-	show_message("%s\n\n%s", _("Debug Logging Enabled!"), APOLLO_PATH "lucente.log");
+	dbglogger_init_mode(FILE_LOGGER, APOLLO_PATH "ps4-save-signer.log", 0);
+	show_message("%s\n\n%s", _("Debug Logging Enabled!"), APOLLO_PATH "ps4-save-signer.log");
 }
 
 static int updateSaveParams(const char* mountPath, const char* title, const char* subtitle, const char* details, uint32_t userParam)
@@ -208,7 +208,7 @@ int save_app_settings(app_config_t* config)
 	mount.blocks = ORBIS_SAVE_DATA_BLOCKS_MIN2;
 	mount.mountMode = (ORBIS_SAVE_DATA_MOUNT_MODE_CREATE2 | ORBIS_SAVE_DATA_MOUNT_MODE_RDWR | ORBIS_SAVE_DATA_MOUNT_MODE_COPY_ICON);
 
-	LOG("PS4 Save Manager %s v%s - Patch Engine v%s", APOLLO_PLATFORM, APOLLO_VERSION, APOLLO_LIB_VERSION);
+	LOG("PS4 Save Signer %s v%s - Patch Engine v%s", APOLLO_PLATFORM, APOLLO_VERSION, APOLLO_LIB_VERSION);
 	if (sceSaveDataMount2(&mount, &mountResult) < 0) {
 		LOG("sceSaveDataMount2 ERROR");
 		return 0;
@@ -218,7 +218,7 @@ int save_app_settings(app_config_t* config)
 	snprintf(filePath, sizeof(filePath), APOLLO_SETTING_PATH "settings.bin", mountResult.mountPathName);
 	write_buffer(filePath, (uint8_t*) config, sizeof(app_config_t));
 
-	updateSaveParams(mountResult.mountPathName, "PS4 Save Manager", _("User Settings"), "github.com/leo-recchiette/lucente-save-tool-ps4", 0);
+	updateSaveParams(mountResult.mountPathName, "PS4 Save Signer", _("User Settings"), "github.com/leo-recchiette/PS4-Save-Manager", 0);
 	if (sceSaveDataUmount((void*)&mountResult.mountPathName) < 0)
 	{
 		LOG("UMOUNT ERROR");

@@ -1,4 +1,4 @@
-# PS4 Save Manager
+# PS4 Save Signer
 
 PlayStation 4 homebrew app for encrypted save games on a USB drive. It resigns whole save packs for your account, copies them to the console, and applies cheats to them. Based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4).
 
@@ -21,7 +21,7 @@ Copies always work on every save found. To copy one save, leave only that one in
 
 ## Install
 
-Download the `.pkg` from the [latest release][app_latest], or from a build in the [Actions](../../actions) tab, and install it on a jailbroken PS4. It uses its own Title ID (`LUCE00001`) and data folder (`/data/lucente/`), so it can sit next to other save tools.
+Download the `.pkg` from the [latest release][app_latest], or from a build in the [Actions](../../actions) tab, and install it on a jailbroken PS4. It uses its own Title ID (`PSSS00001`) and data folder (`/data/ps4-save-signer/`), so it can sit next to other save tools.
 
 ## Bulk resign
 
@@ -46,16 +46,12 @@ Files in `PS4/IMPORT/` are not modified. A save whose resigned copy is already a
 
 ## Cheats
 
-Cheats come from one save patch file per game, `/data/lucente/data/<TITLE_ID>.savepatch` (Save Wizard / Bruteforce Save Data format). The pkg bundles the [Apollo patch pack](https://github.com/bucanero/apollo-patches) and unpacks it on the first run of each version. A file with the same name placed there by hand replaces the bundled one.
+Cheats come from one save patch file per game, `/data/ps4-save-signer/data/<TITLE_ID>.savepatch` (Save Wizard / Bruteforce Save Data format). The pkg bundles the [Apollo patch pack](https://github.com/bucanero/apollo-patches) and unpacks it on the first run of each version. A file with the same name placed there by hand replaces the bundled one.
 
 1. Put the save in `PS4/SAVEDATA/<account-id>/<TITLE_ID>/` on the USB drive.
 2. Open **USB Saves** and select the save.
 3. Select the cheats. The ones the game always needs (decrypt, checksum) are selected for you.
 4. Select **Apply Changes & Resign**. The save on the USB drive is changed in place: keep a copy of the original.
-
-## Controls
-
-<kbd>LEFT</kbd>/<kbd>RIGHT</kbd>/<kbd>UP</kbd>/<kbd>DOWN</kbd> move, ![X button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CROSS.png) selects, ![O button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CIRCLE.png) goes back. Commands ask for confirmation before writing anything.
 
 ## Building
 
@@ -83,5 +79,5 @@ Copyright (C) 2020-2026 [Damian Parrino](https://twitter.com/dparrino) for the o
 This program is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License][app_license] as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 [socat]: http://www.dest-unreach.org/socat/
-[app_latest]: https://github.com/leo-recchiette/lucente-save-tool-ps4/releases/latest
+[app_latest]: https://github.com/leo-recchiette/PS4-Save-Manager/releases/latest
 [app_license]: LICENSE

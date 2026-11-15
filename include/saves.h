@@ -2,20 +2,20 @@
 #include <dbglogger.h>
 #define LOG dbglogger_log
 
-#define APOLLO_PATH				"/data/lucente/"
-#define APOLLO_SANDBOX_PATH		"/data/lucente/mount/%s/"
+#define APOLLO_PATH				"/data/ps4-save-signer/"
+#define APOLLO_SANDBOX_PATH		"/data/ps4-save-signer/mount/%s/"
 
 #ifdef APOLLO_ENABLE_LOGGING
-#define APOLLO_APP_PATH			"/data/lucente/debug/"
+#define APOLLO_APP_PATH			"/data/ps4-save-signer/debug/"
 #define APOLLO_SETTING_PATH		"/mnt/sandbox/LOAD00044_000%s/"
 #else
-#define APOLLO_APP_PATH			"/mnt/sandbox/LUCE00001_000/app0/assets/"
-#define APOLLO_SETTING_PATH		"/mnt/sandbox/LUCE00001_000%s/"
+#define APOLLO_APP_PATH			"/mnt/sandbox/PSSS00001_000/app0/assets/"
+#define APOLLO_SETTING_PATH		"/mnt/sandbox/PSSS00001_000%s/"
 #endif
 
 #define APOLLO_DATA_PATH		APOLLO_PATH "data/"
 #define APOLLO_LOCAL_CACHE		APOLLO_PATH "cache/"
-#define APOLLO_UPDATE_URL		"https://api.github.com/repos/leo-recchiette/lucente-save-tool-ps4/releases/latest"
+#define APOLLO_UPDATE_URL		"https://api.github.com/repos/leo-recchiette/PS4-Save-Manager/releases/latest"
 
 #define MAX_USB_DEVICES         8
 #define USB_PATH                "/mnt/usb%d/"

@@ -1,8 +1,8 @@
 # Package metadata.
-TITLE       := PS4 Save Manager
+TITLE       := PS4 Save Signer
 VERSION     := 02.40
-TITLE_ID    := LUCE00001
-CONTENT_ID  := IV0000-LUCE00001_00-LUCENTE000000PS4
+TITLE_ID    := PSSS00001
+CONTENT_ID  := IV0000-PSSS00001_00-PS4SAVESIGNER000
 
 # Libraries linked into the ELF (SceAudioOut is needed by SDL2, the app plays no audio).
 LIBS        := -lc -lkernel -lc++ -lSceAudioOut -lSceUserService -lScePigletv2VSH -lSceSysmodule -lSceFreeType -lSQLite \
