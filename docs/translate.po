@@ -185,6 +185,10 @@ msgid "Saves resigned:"
 msgstr ""
 
 #: exec_cmd.c
+msgid "Already resigned (skipped):"
+msgstr ""
+
+#: exec_cmd.c
 msgid "Errors:"
 msgstr ""
 

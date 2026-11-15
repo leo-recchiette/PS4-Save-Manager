@@ -269,9 +269,11 @@ static void _find_encrypted_saves(const char* dir_path, list_t* list)
 	closedir(d);
 }
 
+// returns 1 = resigned, 0 = error, 2 = skipped (already resigned)
 static int _resign_import_save(const import_save_t* item, const char* src_root, const char* dst_root, sfo_patch_t* patch)
 {
 	int ret = 0;
+	uint64_t src_size, dst_size;
 	char src[1024], dst[1024];
 	char tmp_file[256], tmp_key[256];
 	char title_id[10];
@@ -289,6 +291,16 @@ static int _resign_import_save(const import_save_t* item, const char* src_root, 
 	{
 		LOG("Error: (%s) requires firmware %s", src, get_fw_by_pfskey_ver(key_hdr[8]));
 		return 0;
+	}
+
+	// shortcut: "already resigned" = same-size image + 96-byte key at the destination, compare contents if packs get replaced under the same name
+	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->dir + strlen(src_root), item->name);
+	if (get_file_size(dst, &dst_size) == SUCCESS && dst_size == 0x60)
+	{
+		snprintf(src, sizeof(src), "%s%s", item->dir, item->name);
+		snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->dir + strlen(src_root), item->name);
+		if (get_file_size(src, &src_size) == SUCCESS && get_file_size(dst, &dst_size) == SUCCESS && src_size == dst_size)
+			return 2;
 	}
 
 	// Work on a copy stored on the HDD: the source is left untouched,
@@ -356,7 +368,8 @@ static void _free_import_list(list_t* list)
 static void resignImportFolder(void)
 {
 	char usb_path[256], src_root[256], dst_root[256];
-	int done = 0, err_count = 0;
+	int done = 0, err_count = 0, skipped = 0;
+	char failed[1024] = "", info[1536];
 	uint64_t progress = 0;
 	list_node_t *node;
 	import_save_t *item;
@@ -404,13 +417,22 @@ static void resignImportFolder(void)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		_resign_import_save(item, src_root, dst_root, &patch) ? done++ : err_count++;
+		switch (_resign_import_save(item, src_root, dst_root, &patch))
+		{
+			case 1: done++; break;
+			case 2: skipped++; break;
+			default:
+				// the dialog only has room for a few names: the rest is in the log
+				if (++err_count <= 6)
+					snprintf(failed + strlen(failed), sizeof(failed) - strlen(failed), "\n! %.90s%.40s", item->dir + strlen(src_root), item->name);
+		}
 	}
 
 	end_progress_bar();
 	_free_import_list(list);
 
-	_show_copy_result(_("Saves resigned:"), done, err_count, dst_root);
+	snprintf(info, sizeof(info), "%s\n%s %d%s%s", dst_root, _("Already resigned (skipped):"), skipped, failed, (err_count > 6) ? "\n..." : "");
+	_show_copy_result(_("Saves resigned:"), done, err_count, info);
 }
 
 /*

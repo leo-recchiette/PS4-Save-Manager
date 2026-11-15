@@ -39,7 +39,7 @@ PS4/IMPORT/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot(.bin)
 PS4/SAVEDATA/<account-id>/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot(.bin)
 ```
 
-Files in `PS4/IMPORT/` are not modified. The current user needs an Account ID: use **Tools** if the account is not activated.
+Files in `PS4/IMPORT/` are not modified. A save whose resigned copy is already at the destination is skipped (delete the copy to resign it again), and the summary names the saves that failed. The current user needs an Account ID: use **Tools** if the account is not activated.
 
 > [!IMPORTANT]
 > The PS4, and **Copy to HDD**, only read saves from `PS4/SAVEDATA/<account-id>/<TITLE_ID>/`. To use a save, move its Title ID folder (e.g. `CUSA09171`) directly under `PS4/SAVEDATA/<account-id>/`.
