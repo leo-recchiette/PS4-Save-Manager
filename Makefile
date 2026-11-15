@@ -1,5 +1,5 @@
 # Package metadata.
-TITLE       := Lucente Save Tool
+TITLE       := PS4 Save Manager
 VERSION     := 02.40
 TITLE_ID    := LUCE00001
 CONTENT_ID  := IV0000-LUCE00001_00-LUCENTE000000PS4

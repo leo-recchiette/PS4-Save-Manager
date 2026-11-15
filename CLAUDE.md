@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Lucente Save Tool for PS4: a homebrew C app (OpenOrbis SDK + SDL2) for a jailbroken PS4 that works on **encrypted** USB saves: resign every save under `PS4/IMPORT/` into `PS4/SAVEDATA/<account-id>/` (keeping the folder structure), copy all USB saves to the HDD, apply cheats (save patches) to a USB save, and offline account activation. It started as a fork of Apollo Save Tool (bucanero/apollo-ps4) and was cut down to these features.
+PS4 Save Manager for PS4: a homebrew C app (OpenOrbis SDK + SDL2) for a jailbroken PS4 that works on **encrypted** USB saves: resign every save under `PS4/IMPORT/` into `PS4/SAVEDATA/<account-id>/` (keeping the folder structure), copy all USB saves to the HDD, apply cheats (save patches) to a USB save, and offline account activation. It started as a fork of Apollo Save Tool (bucanero/apollo-ps4) and was cut down to these features.
 
 ## Build
 

@@ -1,5 +1,5 @@
 /* 
-	Lucente Save Tool - main.c
+	PS4 Save Manager - main.c
 */
 
 #include <stdio.h>

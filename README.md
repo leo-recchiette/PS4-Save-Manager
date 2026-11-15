@@ -1,124 +1,88 @@
-# Lucente Save Tool (PS4)
+# PS4 Save Manager
 
-**Lucente Save Tool** is a PlayStation 4 homebrew app for encrypted save games on a USB drive: it resigns whole save packs for your account, copies them to the console, and applies cheats to them.
+PlayStation 4 homebrew app for encrypted save games on a USB drive. It resigns whole save packs for your account, copies them to the console, and applies cheats to them. Based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4).
 
-It installs with its own Title ID (`LUCE00001`) and data folder (`/data/lucente/`), so it can sit next to other save tools.
+![Main menu](docs/screenshots/main-menu.png)
 
-# Features
+*Renders of the menu design, not photos from a console.*
 
-* **Bulk resign of a save folder:** reads every sub-folder of `PS4/IMPORT/` on the USB drive, resigns each encrypted save for the current account, and copies it to `PS4/SAVEDATA/<account-id>/` keeping the original folder structure.
-* **Copy all USB saves to the HDD:** every encrypted save in `PS4/SAVEDATA/<account-id>/<TITLE_ID>/` is copied to the console and resigned for the current user.
-* **Cheats on USB saves:** select an encrypted save in **USB Saves**, pick the cheats from its save patch, and apply them; the save is also resigned for the current user.
-* **Offline account activation:** give an Account ID to a PS4 user that never signed in to PSN.
-* **Localization support:** Chinese, English, French, German, Greek, Hungarian, Italian, Japanese, Korean, Portuguese, Russian, Spanish.
+## Features
 
-Copies work on encrypted saves only, and always on all the saves found: to copy a single save, leave only that one in the source folder.
+| Tile | What it does |
+|------|--------------|
+| **USB Saves** | Lists the encrypted saves on the USB drive. Select one to pick cheats and apply them; the save is resigned for you. |
+| **Bulk Resign** | Resigns every save in `PS4/IMPORT/` and writes it to `PS4/SAVEDATA/<account-id>/`, keeping the sub-folders. |
+| **Copy to HDD** | Copies every save in `PS4/SAVEDATA/<account-id>/<TITLE_ID>/` to the console, resigned for the current user. |
+| **Tools** | Gives an Account ID to a PS4 user that never signed in to PSN. |
 
-# Bulk resign
+**Settings** and **About** are the two buttons at the top right (press <kbd>UP</kbd>).
 
-An encrypted PS4 save is a pair of files: the save image and its `.bin` key file (96 bytes), inside a folder named after the game's Title ID.
+Copies always work on every save found. To copy one save, leave only that one in the source folder.
 
-1. Copy your save pack to `PS4/IMPORT/<GAME NAME>/` on the USB drive. Any folder depth works; archives must be extracted first.
-2. Select **Bulk Resign** on the main screen.
-3. Confirm. The resigned copies are written to `PS4/SAVEDATA/<account-id>/`, with the same sub-folders:
+## Install
+
+Download the `.pkg` from the [latest release][app_latest], or from a build in the [Actions](../../actions) tab, and install it on a jailbroken PS4. It uses its own Title ID (`LUCE00001`) and data folder (`/data/lucente/`), so it can sit next to other save tools.
+
+## Bulk resign
+
+An encrypted PS4 save is two files: the save image and its 96-byte `.bin` key, inside a folder named after the game's Title ID.
+
+![Bulk Resign tile](docs/screenshots/bulk-resign.png)
+
+1. Extract your save pack to `PS4/IMPORT/<GAME NAME>/` on the USB drive. Any folder depth works.
+2. Select **Bulk Resign** and confirm.
+3. The resigned copies appear in `PS4/SAVEDATA/<account-id>/`, with the same sub-folders:
 
 ```
-PS4/IMPORT/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot
-PS4/IMPORT/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot.bin
+PS4/IMPORT/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot(.bin)
         ↓
-PS4/SAVEDATA/<account-id>/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot
-PS4/SAVEDATA/<account-id>/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot.bin
+PS4/SAVEDATA/<account-id>/<GAME NAME>/#3. Hats Off!/CUSA09171/SAVESERVICE-LINE-0-3Slot(.bin)
 ```
 
-The files in `PS4/IMPORT/` are not modified.
+Files in `PS4/IMPORT/` are not modified. The current user needs an Account ID: use **Tools** if the account is not activated.
 
 > [!IMPORTANT]
-> The PS4 (and the **Copy to HDD** command) only reads saves from `PS4/SAVEDATA/<account-id>/<TITLE_ID>/`. To use a save, move its Title ID folder (e.g. `CUSA09171`) directly under `PS4/SAVEDATA/<account-id>/`.
+> The PS4, and **Copy to HDD**, only read saves from `PS4/SAVEDATA/<account-id>/<TITLE_ID>/`. To use a save, move its Title ID folder (e.g. `CUSA09171`) directly under `PS4/SAVEDATA/<account-id>/`.
 
-The current user needs an Account ID. If the account is not activated, use **Tools** first.
+## Cheats
 
-# Cheats
-
-Cheats come from save patch files (Save Wizard / Bruteforce Save Data format), one per game: `/data/lucente/data/<TITLE_ID>.savepatch`. The pkg bundles the [Apollo patch pack](https://github.com/bucanero/apollo-patches) and unpacks it on the first run of each version; a file with the same name placed in that folder by hand replaces the bundled one.
+Cheats come from one save patch file per game, `/data/lucente/data/<TITLE_ID>.savepatch` (Save Wizard / Bruteforce Save Data format). The pkg bundles the [Apollo patch pack](https://github.com/bucanero/apollo-patches) and unpacks it on the first run of each version. A file with the same name placed there by hand replaces the bundled one.
 
 1. Put the save in `PS4/SAVEDATA/<account-id>/<TITLE_ID>/` on the USB drive.
 2. Open **USB Saves** and select the save.
-3. Select the cheats; the ones the game always needs (decrypt, checksum) are selected automatically.
-4. Select **Apply Changes & Resign**. The save on the USB drive is modified in place: keep a copy of the original.
+3. Select the cheats. The ones the game always needs (decrypt, checksum) are selected for you.
+4. Select **Apply Changes & Resign**. The save on the USB drive is changed in place: keep a copy of the original.
 
-# Setup instructions
+## Controls
 
-Download the `.pkg` from the [latest release][app_latest], or from a build in the **[Actions](../../actions)** tab, and install it on your PlayStation 4.
-On first run, the application will detect and setup the required user settings.
+<kbd>LEFT</kbd>/<kbd>RIGHT</kbd>/<kbd>UP</kbd>/<kbd>DOWN</kbd> move, ![X button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CROSS.png) selects, ![O button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CIRCLE.png) goes back. Commands ask for confirmation before writing anything.
 
-## Data folders
+## Building
 
-| PS4 | Folder |
-|-----|--------|
-| **Save packs to resign** | `/mnt/usbX/PS4/IMPORT/` |
-| **Encrypted saves** | `/mnt/usbX/PS4/SAVEDATA/<account-id>/<TITLE_ID>/` |
-| **External saves (HDD)** | `/data/fakeusb/` can be used in place of a USB drive, with the same folders. |
-
-# Usage
-
- - On the main screen, move <kbd>LEFT</kbd>/<kbd>RIGHT</kbd> and press ![X button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CROSS.png) to pick **USB Saves**, **Bulk Resign**, **Copy to HDD** or **Tools**; press <kbd>UP</kbd> to reach **Settings** and **About**.
-   **Bulk Resign** and **Copy to HDD** start right away, and ask for confirmation before writing anything.
- - In a list, move <kbd>UP</kbd>/<kbd>DOWN</kbd> to select a save or a tool, and press ![X button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CROSS.png) to open the save's cheats or to run the tool.
- - Press ![O button](https://github.com/bucanero/pkgi-ps3/raw/master/data/CIRCLE.png) to go back.
-
-# Credits
-
-Lucente Save Tool is based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4) by [Bucanero](https://github.com/bucanero).
-
-## Acknowledgments
-
-* [Dnawrkshp](https://github.com/Dnawrkshp/): [Artemis PS3](https://github.com/Dnawrkshp/ArtemisPS3)
-* [hzh](https://github.com/hzhreal)/[Team-Alua](https://github.com/Team-Alua/cecie.nim): [vsh-utils](https://github.com/hzhreal/PS4-vsh-utils)
-* [flatz](https://github.com/flatz): [SFO tools](https://github.com/bucanero/pfd_sfo_tools/)
-* [aldostools](https://aldostools.org/): [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)
-* [Manrope](https://github.com/sharanda/manrope) font (OFL) and [Material Symbols](https://fonts.google.com/icons) (Apache 2.0)
-
-## Translators
-
-Translations come from the Apollo Save Tool project: [Akela](https://x.com/Akela_1979) (Russian), Algol (French), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese), [Phoenixx1202](https://github.com/Phoenixx1202) (Portuguese), [Gabor Sari](https://github.com/oldman63) (Hungarian), SpyroMancer (Greek), [SoftwareRat](https://github.com/SoftwareRat) (German), [孙中磊 Sun Zhonglei](https://github.com/1987Lr1987) (Chinese)
-
-# Building
-
-You need to have installed:
-
-- [Open Orbis SDK](https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/)
-- [Apollo](https://github.com/bucanero/apollo-lib) library (save patch engine)
-- [mbedTLS](https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.16.12) library
-- [cURL](https://github.com/bucanero/oosdk_libraries/tree/master/curl-7.64.1) library
-- [libZip](https://github.com/bucanero/oosdk_libraries/tree/master/libzip-1.9.2) library
-- [SDL2](https://github.com/PacBrew/SDL/tree/ps4) library
-- [libJbc](https://github.com/bucanero/ps4-libjbc) library
-- [libSQLite](https://github.com/bucanero/libSQLite-ps4) library
-- [mini18n](https://github.com/bucanero/mini18n) library
-- [dbglogger](https://github.com/bucanero/dbglogger) library
-
-`.github/workflows/build.yml` builds and installs all of them step by step.
-
-Run `make` to create a release build. Run `make createzip` first to bundle the latest save patches (cheats) in the `.pkg`.
-
-You can also set the `PS3LOAD` environment variable to your PS4 IP address: `export PS3LOAD=tcp:x.x.x.x`.
-This will allow you to use a [ps3load client](https://github.com/bucanero/ps4load/tree/main/client) and send the `eboot.bin` directly to the [PS4Load listener](https://github.com/bucanero/ps4load).
-
-To enable debug logging, build Lucente Save Tool with `make DEBUGLOG=1`. The application will send debug messages to
-UDP multicast address `239.255.0.100:30000`. To receive them you can use [socat][] on your computer:
+Needs the [Open Orbis SDK](https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain/) and these libraries installed in it: [apollo-lib](https://github.com/bucanero/apollo-lib), [mbedTLS 2.16.12](https://github.com/Mbed-TLS/mbedtls/releases/tag/v2.16.12), [cURL](https://github.com/bucanero/oosdk_libraries/tree/master/curl-7.64.1), [libZip](https://github.com/bucanero/oosdk_libraries/tree/master/libzip-1.9.2), [SDL2](https://github.com/PacBrew/SDL/tree/ps4), [libJbc](https://github.com/bucanero/ps4-libjbc), [libSQLite](https://github.com/bucanero/libSQLite-ps4), [mini18n](https://github.com/bucanero/mini18n), [dbglogger](https://github.com/bucanero/dbglogger). `.github/workflows/build.yml` shows how to build all of them.
 
 ```sh
-$ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+make createzip   # optional: bundle the latest save patches (cheats)
+make             # build the .pkg
 ```
 
-# License
+With `PS3LOAD=tcp:<ps4-ip>` set, a [ps3load client](https://github.com/bucanero/ps4load/tree/main/client) can send `eboot.bin` to the [PS4Load listener](https://github.com/bucanero/ps4load). `make DEBUGLOG=1` sends debug messages to UDP multicast `239.255.0.100:30000`; receive them with [socat][]:
 
-Lucente Save Tool is based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4/) (PS4) - Copyright (C) 2020-2026 [Damian Parrino](https://twitter.com/dparrino)
+```sh
+socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
+```
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the [GNU General Public License][app_license] as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+## Credits
+
+Based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4) by [Bucanero](https://github.com/bucanero). Thanks to [Dnawrkshp](https://github.com/Dnawrkshp/) ([Artemis PS3](https://github.com/Dnawrkshp/ArtemisPS3)), [hzh](https://github.com/hzhreal)/[Team-Alua](https://github.com/Team-Alua/cecie.nim) ([vsh-utils](https://github.com/hzhreal/PS4-vsh-utils)), [flatz](https://github.com/flatz) ([SFO tools](https://github.com/bucanero/pfd_sfo_tools/)), [aldostools](https://aldostools.org/) ([Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)), the [Manrope](https://github.com/sharanda/manrope) font (OFL) and [Material Symbols](https://fonts.google.com/icons) (Apache 2.0).
+
+Translations come from the Apollo Save Tool project: [Akela](https://x.com/Akela_1979) (Russian), Algol (French), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese), [Phoenixx1202](https://github.com/Phoenixx1202) (Portuguese), [Gabor Sari](https://github.com/oldman63) (Hungarian), SpyroMancer (Greek), [SoftwareRat](https://github.com/SoftwareRat) (German), [孙中磊 Sun Zhonglei](https://github.com/1987Lr1987) (Chinese).
+
+## License
+
+Copyright (C) 2020-2026 [Damian Parrino](https://twitter.com/dparrino) for the original Apollo Save Tool.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License][app_license] as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
 [socat]: http://www.dest-unreach.org/socat/
 [app_latest]: https://github.com/leo-recchiette/lucente-save-tool-ps4/releases/latest

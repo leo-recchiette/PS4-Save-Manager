@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: Lucente Save Tool (PS4)\n"
+"Project-Id-Version: PS4 Save Manager (PS4)\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-05-02 13:16+0000\n"
 "PO-Revision-Date: 2025-10-22 17:40-0300\n"
