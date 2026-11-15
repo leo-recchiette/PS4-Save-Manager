@@ -229,12 +229,9 @@ static void initLocalization(void)
 	char path[256];
 
 	snprintf(path, sizeof(path), APOLLO_DATA_PATH "lang_%s.po", get_user_language());
+	// no translation bundled: the English text in the source is used unless a file is placed there by hand
 	if (mini18n_set_locale(path) != SUCCESS)
-	{
-		snprintf(path, sizeof(path), APOLLO_APP_PATH "misc/lang_%s.po", get_user_language());
-		if (mini18n_set_locale(path) != SUCCESS)
-			LOG("Localization file not found: %s", path);
-	}
+		LOG("Localization file not found: %s", path);
 
 	usb_saves.title = _("USB Saves");
 	user_backup.title = _("User Tools");

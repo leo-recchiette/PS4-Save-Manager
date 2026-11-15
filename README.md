@@ -76,8 +76,6 @@ socat udp4-recv:30000,ip-add-membership=239.255.0.100:0.0.0.0 -
 
 Based on [Apollo Save Tool](https://github.com/bucanero/apollo-ps4) by [Bucanero](https://github.com/bucanero). Thanks to [Dnawrkshp](https://github.com/Dnawrkshp/) ([Artemis PS3](https://github.com/Dnawrkshp/ArtemisPS3)), [hzh](https://github.com/hzhreal)/[Team-Alua](https://github.com/Team-Alua/cecie.nim) ([vsh-utils](https://github.com/hzhreal/PS4-vsh-utils)), [flatz](https://github.com/flatz) ([SFO tools](https://github.com/bucanero/pfd_sfo_tools/)), [aldostools](https://aldostools.org/) ([Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)), the [Manrope](https://github.com/sharanda/manrope) font (OFL) and [Material Symbols](https://fonts.google.com/icons) (Apache 2.0).
 
-Translations come from the Apollo Save Tool project: [Akela](https://x.com/Akela_1979) (Russian), Algol (French), [Bucanero](https://github.com/bucanero) (Spanish), [TheheroGAC](https://x.com/TheheroGAC) (Italian), [yyoossk](https://x.com/Cloud0835) (Japanese), [Phoenixx1202](https://github.com/Phoenixx1202) (Portuguese), [Gabor Sari](https://github.com/oldman63) (Hungarian), SpyroMancer (Greek), [SoftwareRat](https://github.com/SoftwareRat) (German), [孙中磊 Sun Zhonglei](https://github.com/1987Lr1987) (Chinese).
-
 ## License
 
 Copyright (C) 2020-2026 [Damian Parrino](https://twitter.com/dparrino) for the original Apollo Save Tool.

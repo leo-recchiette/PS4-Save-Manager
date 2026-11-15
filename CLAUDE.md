@@ -48,7 +48,7 @@ The main screen (`doMainMenu()` in `menu_main.c`, `_draw_MainMenu()` in `draw.c`
 - **USB Saves** and **Tools** are `save_list_t` (defined in `main.c`) whose `ReadList` callback (`ReadUsbList`, `ReadUserToolsList` in `saves.c`) returns a `list_t` of `save_entry_t`, drawn by `menu_tools.c`.
 - **USB Saves** lists the encrypted saves found by `ReadUsbSaves()` (mounts each `PS4/SAVEDATA/<account>/<TITLE_ID>/<save>` to read its `param.sfo`; unreadable ones get `FILE_TYPE_NULL`). It is rebuilt when entered from the main screen, not when coming back from a save's cheats. The USB root comes from `update_usb_path()` in `main.c` (Settings → USB source, or auto-detect).
 - **Tools** entries are commands: `type == FILE_TYPE_MENU`, `cmd` a `cmd_code_enum` value (`include/saves.h`) and `arg` its argument (the user number for account activation); X calls `execCommand()` in `source/exec_cmd.c`, a `switch` on `entry->cmd`.
-- **Adding a command** means: a new `cmd_code_enum` value, a `case` in `execCommand`, an entry in `ReadUserToolsList` or a main-menu tile, and new translatable strings (see Localization).
+- **Adding a command** means: a new `cmd_code_enum` value, a `case` in `execCommand`, an entry in `ReadUserToolsList` or a main-menu tile, and wrap new strings in `_()`.
 
 ### Cheats
 - Selecting a save calls `ReadCodes()` (`saves.c`): it fills `save->codes` with an **Apply Changes & Resign** command (`PATCH_COMMAND`, `codes[0] == CMD_APPLY_CHEATS`) and the cheats parsed by apollo-lib (`apollo_load_code_list`) from `/data/lucente/data/<TITLE_ID>.savepatch`, with the save mounted so cheats aimed at `*` file masks get the matching files as options (`get_file_entries`).
@@ -67,16 +67,12 @@ The save patch engine, the code/list types (`code_entry_t`, `option_entry_t`, `l
 
 ## Localization
 
-- User-facing strings are wrapped in `_("...")`, a mini18n runtime lookup.
-- Static initializers (e.g. `menu_options[]` in `settings.c`) use `_i18n("...")`, a no-op marker for extraction. Those strings are translated later through `mini18n()` in `initMenuOptions()`.
-- The template is `docs/translate.po` (Poedit, keywords `_;_i18n`, base path `source/`). Translations are `assets/misc/lang_<code>.po` (12 languages). At runtime, `/data/lucente/data/lang_<code>.po` overrides the bundled file.
-- When adding or changing strings, update `docs/translate.po` **and** every `assets/misc/lang_*.po`.
+The app is English only. Strings are still wrapped in `_("...")` (mini18n) and `_i18n("...")` (static initializers such as `menu_options[]` in `settings.c`), and `docs/translate.po` is the extraction template. A `lang_<code>.po` copied by hand to `/data/lucente/data/` is loaded for the console language, so a translation can be added without code changes. Main-menu text is baked into images and stays English either way.
 
 ## Releases
 
-To bump the version, update all three of:
+To bump the version, update both of:
 - `VERSION` in `Makefile` (format `02.40`)
 - `APOLLO_VERSION` in `include/settings.h` (format `"2.4.0"`)
-- `CHANGELOG.md`
 
 A change to `APOLLO_VERSION` makes the app re-extract the bundled `appdata.zip` on first launch.
