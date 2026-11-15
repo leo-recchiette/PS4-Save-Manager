@@ -315,45 +315,6 @@ static sfo_context_param_t * sfo_context_get_param(sfo_context_t *context, const
 	return NULL;
 }
 
-void sfo_grab(sfo_context_t *inout, sfo_context_t *tpl, int num_keys, const sfo_key_pair_t *keys) {
-	sfo_context_param_t *p1;
-	sfo_context_param_t *p2;
-	int i;
-
-	for (i = 0; i < num_keys; ++i) {
-		if (!keys[i].flag)
-			continue;
-
-		p1 = sfo_context_get_param(inout, keys[i].name);
-		p2 = sfo_context_get_param(tpl, keys[i].name);
-
-		if (p1 && p2) {
-			if (strcmp(keys[i].name, "PARAMS") != 0) {
-				if (p1->actual_length != p2->actual_length) {
-					p1->value = (u8 *)realloc(p1->value, p2->actual_length);
-					memset(p1->value, 0, p2->actual_length);
-				}
-
-				memcpy(p1->value, p2->value, p2->actual_length);
-				p1->format = p2->format;
-				p1->length = p2->length;
-				p1->max_length = p2->max_length;
-				p1->actual_length = p2->actual_length;
-			} else {
-				sfo_param_params_t *params1;
-				sfo_param_params_t *params2;
-
-				assert(p1->actual_length == p2->actual_length);
-
-				params1 = (sfo_param_params_t *)p1->value;
-				params2 = (sfo_param_params_t *)p2->value;
-
-				params1->user_id = params2->user_id;
-			}
-		}
-	}
-}
-
 static void sfo_patch_titleid(sfo_context_t *inout) {
 	sfo_context_param_t *p;
 
@@ -389,7 +350,7 @@ static void sfo_patch_user_id(sfo_context_t *inout, u32 userid) {
 	}
 }
 
-void sfo_patch_psid(sfo_context_t *inout, u8* psid) {
+static void sfo_patch_psid(sfo_context_t *inout, u8* psid) {
 	sfo_context_param_t *p;
 
 	if (!psid)
@@ -402,21 +363,6 @@ void sfo_patch_psid(sfo_context_t *inout, u8* psid) {
 			LOG("Failed to calculate PSID HMAC");
 	}
 }
-
-/*
-void sfo_patch_directory(sfo_context_t *inout, const char* save_dir) {
-	sfo_context_param_t *p;
-
-	if (!save_dir)
-		return;
-
-	p = sfo_context_get_param(inout, "SAVEDATA_DIRECTORY");
-	if (p != NULL && p->actual_length == SFO_DIRECTORY_SIZE) {
-		memset(p->value, 0, SFO_DIRECTORY_SIZE);
-		memcpy(p->value, save_dir, strlen(save_dir));
-	}
-}
-*/
 
 u8* sfo_get_param_value(sfo_context_t *in, const char* param) {
 	sfo_context_param_t *p;
@@ -443,7 +389,6 @@ int patch_sfo(const char *in_file_path, sfo_patch_t* patches) {
 	sfo_patch_account(sfo, patches->account_id);
 	sfo_patch_user_id(sfo, patches->user_id);
 	sfo_patch_psid(sfo, patches->psid);
-//	sfo_patch_directory(sfo, patches->directory);
 
 	if (sfo_write(sfo, in_file_path) < 0) {
 		LOG("Unable to write to '%s'", in_file_path);
@@ -457,69 +402,3 @@ int patch_sfo(const char *in_file_path, sfo_patch_t* patches) {
 	LOG("PARAM.SFO was patched successfully");
 	return 0;
 }
-
-int build_sfo(const char *in_file_path, const char *out_file_path, const char *tpl_file_path, int num_keys, const sfo_key_pair_t *keys) {
-	sfo_context_t *sfo1;
-	sfo_context_t *sfo2;
-
-	sfo1 = sfo_alloc();
-	if (sfo_read(sfo1, in_file_path) < 0) {
-		sfo_free(sfo1);
-		LOG("Unable to read from '%s'", in_file_path);
-		return -1;
-	}
-
-	sfo2 = sfo_alloc();
-	if (sfo_read(sfo2, tpl_file_path) < 0) {
-		sfo_free(sfo2);
-		LOG("Unable to read from '%s'", tpl_file_path);
-		return -1;
-	}
-
-	sfo_grab(sfo1, sfo2, num_keys, keys);
-	if (sfo_write(sfo1, out_file_path) < 0) {
-		LOG("Unable to write to '%s'", out_file_path);
-		return -1;
-	}
-
-	if (sfo1)
-		sfo_free(sfo1);
-	if (sfo2)
-		sfo_free(sfo2);
-
-	LOG("PARAM.SFO was built successfully");
-	return 0;
-}
-
-/*
-int patch_sfo_trophy(const char *in_file_path, const char* account) {
-	sfo_context_t *sfo;
-	sfo_context_param_t *p;
-
-	if (!account)
-		return 0;
-
-	sfo = sfo_alloc();
-	if (sfo_read(sfo, in_file_path) < 0) {
-		sfo_free(sfo);
-		LOG("Unable to read from '%s'", in_file_path);
-		return -1;
-	}
-
-	p = sfo_context_get_param(sfo, "ACCOUNTID");
-	if (p != NULL && p->actual_length == SFO_ACCOUNT_ID_SIZE) {
-		memcpy(p->value, account, SFO_ACCOUNT_ID_SIZE);
-	}
-
-	if (sfo_write(sfo, in_file_path) < 0) {
-		LOG("Unable to write to '%s'", in_file_path);
-		return -1;
-	}
-
-	if (sfo)
-		sfo_free(sfo);
-
-	LOG("PARAM.SFO was patched successfully");
-	return 0;
-}
-*/

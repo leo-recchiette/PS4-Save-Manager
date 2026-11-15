@@ -68,26 +68,6 @@ static int orbisPadInitConf()
 	return 0;
 }
 
-unsigned int orbisPadGetCurrentButtonsPressed()
-{
-	return orbisPadConf.buttonsPressed;
-}
-
-void orbisPadSetCurrentButtonsPressed(unsigned int buttons)
-{
-	orbisPadConf.buttonsPressed=buttons;
-}
-
-unsigned int orbisPadGetCurrentButtonsReleased()
-{
-	return orbisPadConf.buttonsReleased;
-}
-
-void orbisPadSetCurrentButtonsReleased(unsigned int buttons)
-{
-	orbisPadConf.buttonsReleased=buttons;
-}
-
 bool orbisPadGetButtonHold(unsigned int filter)
 {
 	uint64_t time = timeInMilliseconds();
@@ -110,20 +90,6 @@ bool orbisPadGetButtonPressed(unsigned int filter)
 	if((orbisPadConf.buttonsPressed&filter)==filter)
 	{
 		orbisPadConf.buttonsPressed ^= filter;
-		return 1;
-	}
-
-	return 0;
-}
-
-bool orbisPadGetButtonReleased(unsigned int filter)
-{
- 	if((orbisPadConf.buttonsReleased&filter)==filter)
-	{
-		if(~(orbisPadConf.padDataLast.buttons)&filter)
-		{
-			return 0;
-		}
 		return 1;
 	}
 

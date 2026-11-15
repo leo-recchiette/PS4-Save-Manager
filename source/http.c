@@ -14,8 +14,6 @@
 #define HTTP_FAILED	 	0
 #define HTTP_USER_AGENT "Mozilla/5.0 (PLAYSTATION 4; 1.00)"
 
-static CURL *ftp_ctx = NULL;
-
 
 int http_init(void)
 {
@@ -42,13 +40,6 @@ static int update_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ulto
 	return 0;
 }
 
-static int upload_progress(void *p, int64_t dltotal, int64_t dlnow, int64_t ultotal, int64_t ulnow)
-{
-	LOG("UL: %lld / %lld", ulnow, ultotal);
-	update_progress_bar(ulnow, ultotal, (const char*) p);
-	return 0;
-}
-
 static void set_curl_opts(CURL* curl)
 {
 	OrbisNetCtlInfo proxy_info;
@@ -69,8 +60,6 @@ static void set_curl_opts(CURL* curl)
 	curl_easy_setopt(curl, CURLOPT_MAXREDIRS, 20L);
 	// Fail the request if the HTTP code returned is equal to or larger than 400
 	curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
-	// request using SSL for the FTP transfer if available
-	curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_TRY);
 
 	// check for proxy settings
 	memset(&proxy_info, 0, sizeof(OrbisNetCtlInfo));
@@ -129,12 +118,6 @@ static int _curl_download(CURL *curl, const char* url, const char* filename, con
 	// Perform the request
 	res = curl_easy_perform(curl);
 
-	if (res == CURLE_SSL_CONNECT_ERROR)
-	{
-		curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_NONE);
-		res = curl_easy_perform(curl);
-	}
-
 	// close file descriptor
 	fclose(fd);
 
@@ -173,113 +156,4 @@ void http_end(void)
 
 	sceSysmoduleUnloadModuleInternal(ORBIS_SYSMODULE_INTERNAL_NETCTL);
 	sceSysmoduleUnloadModuleInternal(ORBIS_SYSMODULE_INTERNAL_NET);
-}
-
-void ftp_init(void)
-{
-	if (!ftp_ctx && (ftp_ctx = curl_easy_init()))
-		set_curl_opts(ftp_ctx);
-}
-
-void ftp_end(void)
-{
-	if (ftp_ctx)
-		curl_easy_cleanup(ftp_ctx);
-
-	ftp_ctx = NULL;
-}
-
-int ftp_download(const char* url, const char* filename, const char* local_dst, int show_progress)
-{
-	if (!ftp_ctx)
-		return HTTP_FAILED;
-
-	curl_easy_setopt(ftp_ctx, CURLOPT_UPLOAD, 0);
-	curl_easy_setopt(ftp_ctx, CURLOPT_APPEND, 0);
-	curl_easy_setopt(ftp_ctx, CURLOPT_NOPROGRESS, 1L);
-
-	return _curl_download(ftp_ctx, url, filename, local_dst, show_progress);
-}
-
-int ftp_upload(const char* local_file, const char* url, const char* filename, int show_progress)
-{
-	FILE *fd;
-	CURL *curl;
-	CURLcode res;
-	char remote_url[1024];
-	unsigned long fsize;
-
-	/* get a curl handle */
-	curl = ftp_ctx;
-	if(!curl)
-	{
-		LOG("ERROR: CURL INIT");
-		return HTTP_FAILED;
-	}
-
-	/* get a FILE * of the same file */
-	fd = fopen(local_file, "rb");
-	if(!fd)
-	{
-		LOG("Couldn't open '%s'", local_file);
-		return HTTP_FAILED;
-	}
-
-	/* get the file size of the local file */
-	fseek(fd, 0, SEEK_END);
-	fsize = ftell(fd);
-	fseek(fd, 0, SEEK_SET);
-
-	snprintf(remote_url, sizeof(remote_url), "%s%s", url, filename);
-
-	LOG("Local file size: %lu bytes.", fsize);
-	LOG("Uploading (%s) -> (%s)", local_file, remote_url);
-
-	/* enable uploading */
-	curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-	curl_easy_setopt(curl, CURLOPT_APPEND, 0L);
-	/* specify target */
-	curl_easy_setopt(curl, CURLOPT_URL, remote_url);
-	// create missing dirs if needed
-	curl_easy_setopt(curl, CURLOPT_FTP_CREATE_MISSING_DIRS, CURLFTP_CREATE_DIR);
-	/* please ignore the IP in the PASV response */
-	curl_easy_setopt(curl, CURLOPT_FTP_SKIP_PASV_IP, 1L);
-	/* we want to use our own read function */
-	curl_easy_setopt(curl, CURLOPT_READFUNCTION, fread);
-	/* now specify which file to upload */
-	curl_easy_setopt(curl, CURLOPT_READDATA, fd);
-	/* Set the size of the file to upload (optional). */
-	curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)fsize);
-
-	if (show_progress)
-	{
-		init_progress_bar(_("Uploading..."));
-		/* pass the struct pointer into the xferinfo function */
-		curl_easy_setopt(curl, CURLOPT_XFERINFOFUNCTION, &upload_progress);
-		curl_easy_setopt(curl, CURLOPT_XFERINFODATA, (void*) filename);
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
-	}
-	else
-	{
-		curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 1L);
-		curl_easy_setopt(curl, CURLOPT_APPEND, 1L);
-	}
-
-	/* Now run off and do what you have been told! */
-	res = curl_easy_perform(curl);
-
-	/* close the local file */
-	fclose(fd);
-
-	if (show_progress)
-		end_progress_bar();
-
-	/* Check for errors */
-	if(res != CURLE_OK)
-	{
-		LOG("curl_easy_perform() failed: %s", curl_easy_strerror(res));
-		return HTTP_FAILED;
-	}
-
-	return HTTP_SUCCESS;
 }

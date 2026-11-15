@@ -3,18 +3,10 @@
 
 
 int TTFLoadFont(int set, const char * path, void * from_memory, int size_from_memory);
-void TTFUnloadFont();
-
-void TTF_to_Bitmap(u8 chr, u8 * bitmap, short *w, short *h, short *y_correction);
-
-int Render_String_UTF8(u16 * bitmap, int w, int h, u8 *string, int sw, int sh);
 
 
-// initialize and create textures slots for ttf
-u16 * init_ttf_table(u8 *texture);
-
-// do one time per frame to reset the character use flag
-void reset_ttf_frame(void);
+// reset the glyph cache
+void init_ttf_table(void);
 
 // define window mode and size
 

@@ -1,5 +1,5 @@
 /* 
-	Apollo PS4 main.c
+	Lucente Save Tool - main.c
 */
 
 #include <stdio.h>
@@ -28,8 +28,6 @@
 //Font
 #include "libfont.h"
 #include "ttf_render.h"
-#include "font_adonais.h"
-#include "font-10x20.h"
 
 //Sound
 #include <s3m.h>
@@ -44,22 +42,12 @@ static int32_t audio = 0;
 			if (!LoadMenuTexture(APOLLO_APP_PATH "images/" #name "." #type , name##_##type##_index)) return 0;
 
 
-void update_usb_path(char *p);
-void update_hdd_path(char *p);
-void update_trophy_path(char *p);
-void update_db_path(char *p);
-void update_vmc_path(char *p);
-
 app_config_t apollo_config = {
     .app_name = "LUCENTE",
     .app_ver = {0},
-    .save_db = ONLINE_URL,
-    .ftp_url = "",
     .music = 1,
-    .doSort = 1,
     .doAni = 1,
     .update = 1,
-    .online_opt = 0,
     .dbglog = 0,
     .usb_dev = (MAX_USB_DEVICES+1),
     .user_id = 0,
@@ -73,148 +61,34 @@ int idle_time = 0;                          // Set by readPad
 png_texture * menu_textures;                // png_texture array for main menu, initialized in LoadTexture
 SDL_Window* window;                         // SDL window
 SDL_Renderer* renderer;                     // SDL software renderer
-uint32_t* texture_mem;                      // Pointers to texture memory
-uint32_t* free_mem;                         // Pointer after last texture
 
 /*
-* HDD save list
-*/
-save_list_t hdd_saves = {
-    .id = MENU_HDD_SAVES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadUserList,
-    .ReadCodes = &ReadCodes,
-    .UpdatePath = &update_hdd_path,
-};
-
-/*
-* USB save list
+* Tools lists
 */
 save_list_t usb_saves = {
     .id = MENU_USB_SAVES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
     .ReadList = &ReadUsbList,
-    .ReadCodes = &ReadCodes,
-    .UpdatePath = &update_usb_path,
 };
 
-/*
-* Trophy list
-*/
-save_list_t trophies = {
-    .id = MENU_TROPHIES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadTrophyList,
-    .ReadCodes = &ReadTrophies,
-    .UpdatePath = &update_trophy_path,
-};
-
-/*
-* Online code list
-*/
-save_list_t online_saves = {
-    .id = MENU_ONLINE_DB,
-    .title = NULL,
-    .list = NULL,
-    .path = ONLINE_URL,
-    .ReadList = &ReadOnlineList,
-    .ReadCodes = &ReadOnlineSaves,
-    .UpdatePath = &update_db_path,
-};
-
-/*
-* User Backup code list
-*/
 save_list_t user_backup = {
     .id = MENU_USER_BACKUP,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadBackupList,
-    .ReadCodes = &ReadBackupCodes,
-    .UpdatePath = NULL,
-};
-
-/*
-* PS1 VMC list
-*/
-save_list_t vmc1_saves = {
-    .id = MENU_PS1VMC_SAVES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadVmc1List,
-    .ReadCodes = &ReadVmc1Codes,
-    .UpdatePath = &update_vmc_path,
-};
-
-/*
-* PS2 VMC list
-*/
-save_list_t vmc2_saves = {
-    .id = MENU_PS2VMC_SAVES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadVmc2List,
-    .ReadCodes = &ReadVmc2Codes,
-    .UpdatePath = &update_vmc_path,
-};
-
-/*
-* Dreamcast VMU list
-*/
-save_list_t vmu_saves = {
-    .id = MENU_DCVMC_SAVES,
-    .title = NULL,
-    .list = NULL,
-    .path = "",
-    .ReadList = &ReadVmuList,
-    .ReadCodes = &ReadVmuCodes,
-    .UpdatePath = &update_vmc_path,
+    .ReadList = &ReadUserToolsList,
 };
 
 static const char* get_button_prompts(char* prompt)
 {
 	switch (menu_id)
 	{
-		case MENU_TROPHIES:
 		case MENU_USB_SAVES:
-		case MENU_HDD_SAVES:
-		case MENU_ONLINE_DB:
-		case MENU_PS1VMC_SAVES:
-		case MENU_PS2VMC_SAVES:
-		case MENU_DCVMC_SAVES:
-			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s    \x12 %s    \x11 %s", _("Select"), _("Back"), _("Details"), _("Refresh"));
-			break;
-
 		case MENU_USER_BACKUP:
-			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s    \x11 %s", _("Select"), _("Back"), _("Refresh"));
-			break;
-
+		case MENU_PATCHES:
 		case MENU_SETTINGS:
 		case MENU_CODE_OPTIONS:
 			snprintf(prompt, 0xFF, "\x10 %s    \x13 %s", _("Select"), _("Back"));
 			break;
 
 		case MENU_CREDITS:
-		case MENU_PATCH_VIEW:
-		case MENU_SAVE_DETAILS:
 			snprintf(prompt, 0xFF, "\x13 %s", _("Back"));
-			break;
-
-		case MENU_PATCHES:
-			snprintf(prompt, 0xFF, "\x10 %s    \x12 %s    \x13 %s", _("Select"), _("View Code"), _("Back"));
-			break;
-
-		case MENU_HEX_EDITOR:
-			snprintf(prompt, 0xFF, "\x10 %s    \x11 %s    \x12 %s    \x13 %s", _("Value Up"), _("Value Down"), _("Search"), _("Exit"));
 			break;
 
 		case MENU_MAIN_SCREEN:
@@ -262,109 +136,66 @@ static int initPad(void)
 	return 1;
 }
 
-// Used only in initialization. Allocates 64 mb for textures and loads the font
+// Used only in initialization: loads the fonts and the textures
 static int LoadTextures_Menu(void)
 {
-	texture_mem = malloc(256 * 32 * 4);
 	menu_textures = (png_texture *)calloc(TOTAL_MENU_TEXTURES, sizeof(png_texture));
-	
-	if(!texture_mem || !menu_textures)
+	if (!menu_textures)
 		return 0; // fail!
-	
-	ResetFont();
-	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) data_font_Adonais, (u8 *) texture_mem, 0x20, 0x7e, 32, 31, 1, BIT7_FIRST_PIXEL);
-	free_mem = (u32 *) AddFontFromBitmapArray((u8 *) console_font_10x20, (u8 *) free_mem, 0, 0xFF, 10, 20, 1, BIT7_FIRST_PIXEL);
 
-	if (TTFLoadFont(0, "/preinst/common/font/DFHEI5-SONY.ttf", NULL, 0) != SUCCESS ||
-		TTFLoadFont(2, APOLLO_APP_PATH "fonts/NanumMyeongjoExtraBold.ttf", NULL, 0) != SUCCESS ||
-		TTFLoadFont(1, "/system_ex/app/NPXS20113/bdjstack/lib/fonts/SCE-PS3-RD-R-LATIN.TTF", NULL, 0) != SUCCESS)
+	// Manrope for Latin text, then the system and bundled fonts for every other script
+	if (TTFLoadFont(0, APOLLO_APP_PATH "fonts/Manrope-SemiBold.ttf", NULL, 0) != SUCCESS ||
+		TTFLoadFont(1, "/preinst/common/font/DFHEI5-SONY.ttf", NULL, 0) != SUCCESS ||
+		TTFLoadFont(2, "/system_ex/app/NPXS20113/bdjstack/lib/fonts/SCE-PS3-RD-R-LATIN.TTF", NULL, 0) != SUCCESS ||
+		TTFLoadFont(3, APOLLO_APP_PATH "fonts/NanumMyeongjoExtraBold.ttf", NULL, 0) != SUCCESS)
 		return 0;
 
-	free_mem = (u32*) init_ttf_table((u8*) free_mem);
+	init_ttf_table();
 	set_ttf_window(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, WIN_SKIP_LF);
-	
+
+	// smooth scaling for the textures created from now on
+	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1");
+
 	//Init Main Menu textures
-	load_menu_texture(bgimg, jpg);
-	load_menu_texture(cheat, png);
-	load_menu_texture(leon_luna, jpg);
-
-	load_menu_texture(circle_loading_bg, png);
-	load_menu_texture(circle_loading_seek, png);
-	load_menu_texture(edit_shadow, png);
-
-	load_menu_texture(footer_ico_circle, png);
-	load_menu_texture(footer_ico_cross, png);
-	load_menu_texture(footer_ico_square, png);
-	load_menu_texture(footer_ico_triangle, png);
-	load_menu_texture(header_dot, png);
-	load_menu_texture(header_line, png);
-
-	load_menu_texture(mark_arrow, png);
-	load_menu_texture(mark_line, png);
-	load_menu_texture(opt_off, png);
-	load_menu_texture(opt_on, png);
-	load_menu_texture(scroll_bg, png);
-	load_menu_texture(scroll_lock, png);
-	load_menu_texture(help, png);
-	load_menu_texture(buk_scr, png);
+	load_menu_texture(bgimg, png);
+	load_menu_texture(logo, png);
+	load_menu_texture(mm_header, png);
+	load_menu_texture(mm_headline, png);
+	load_menu_texture(mm_hbtns_none, png);
+	load_menu_texture(mm_hbtns_settings, png);
+	load_menu_texture(mm_hbtns_about, png);
+	load_menu_texture(mm_footer, png);
+	load_menu_texture(mm_glow, png);
+	load_menu_texture(mm_tile0_off, png);
+	load_menu_texture(mm_tile1_off, png);
+	load_menu_texture(mm_tile2_off, png);
+	load_menu_texture(mm_tile3_off, png);
+	load_menu_texture(mm_tile0_on, png);
+	load_menu_texture(mm_tile1_on, png);
+	load_menu_texture(mm_tile2_on, png);
+	load_menu_texture(mm_tile3_on, png);
 	load_menu_texture(cat_about, png);
-	load_menu_texture(cat_cheats, png);
 	load_menu_texture(cat_opt, png);
 	load_menu_texture(cat_usb, png);
 	load_menu_texture(cat_bup, png);
-	load_menu_texture(cat_db, png);
-	load_menu_texture(cat_hdd, png);
 	load_menu_texture(cat_sav, png);
-	load_menu_texture(cat_warning, png);
-	load_menu_texture(column_1, png);
-	load_menu_texture(column_2, png);
-	load_menu_texture(column_3, png);
-	load_menu_texture(column_4, png);
-	load_menu_texture(column_5, png);
-	load_menu_texture(column_6, png);
-	load_menu_texture(column_7, png);
-	load_menu_texture(jar_about, png);
-	load_menu_texture(jar_about_hover, png);
-	load_menu_texture(jar_bup, png);
-	load_menu_texture(jar_bup_hover, png);
-	load_menu_texture(jar_db, png);
-	load_menu_texture(jar_db_hover, png);
-	load_menu_texture(jar_trophy, png);
-	load_menu_texture(jar_trophy_hover, png);
-	load_menu_texture(jar_hdd, png);
-	load_menu_texture(jar_hdd_hover, png);
-	load_menu_texture(jar_opt, png);
-	load_menu_texture(jar_opt_hover, png);
-	load_menu_texture(jar_usb, png);
-	load_menu_texture(jar_usb_hover, png);
-	load_menu_texture(logo, png);
-	load_menu_texture(logo_text, png);
+	load_menu_texture(cat_cheats, png);
+	load_menu_texture(cheat, png);
+	load_menu_texture(edit_shadow, png);
+	load_menu_texture(tag_warning, png);
 	load_menu_texture(tag_lock, png);
 	load_menu_texture(tag_own, png);
-	load_menu_texture(tag_vmc, png);
-	load_menu_texture(tag_ps1, png);
-	load_menu_texture(tag_ps2, png);
-	load_menu_texture(tag_ps3, png);
-	load_menu_texture(tag_ps4, png);
-	load_menu_texture(tag_psp, png);
-	load_menu_texture(tag_psv, png);
-	load_menu_texture(tag_dc, png);
-	load_menu_texture(tag_warning, png);
-	load_menu_texture(tag_zip, png);
-	load_menu_texture(tag_net, png);
 	load_menu_texture(tag_apply, png);
-	load_menu_texture(tag_transfer, png);
+	load_menu_texture(footer_ico_circle, png);
+	load_menu_texture(footer_ico_cross, png);
+	load_menu_texture(opt_off, png);
+	load_menu_texture(opt_on, png);
+	load_menu_texture(help, png);
+	load_menu_texture(scroll_bg, png);
+	load_menu_texture(scroll_lock, png);
+	load_menu_texture(mark_arrow, png);
+	load_menu_texture(mark_line, png);
 
-	load_menu_texture(trp_sync, png);
-	load_menu_texture(trp_bronze, png);
-	load_menu_texture(trp_silver, png);
-	load_menu_texture(trp_gold, png);
-	load_menu_texture(trp_platinum, png);
-
-	menu_textures[icon_png_file_index].texture = NULL;
-
-	u32 tBytes = free_mem - texture_mem;
-	LOG("LoadTextures_Menu() :: Allocated %db (%.02fkb, %.02fmb) for textures", tBytes, tBytes / (float)1024, tBytes / (float)(1024 * 1024));
 	return 1;
 }
 
@@ -455,35 +286,6 @@ void update_usb_path(char* path)
 	path[0] = 0;
 }
 
-void update_hdd_path(char* path)
-{
-	sprintf(path, SAVES_DB_PATH, apollo_config.user_id);
-}
-
-void update_trophy_path(char* path)
-{
-	sprintf(path, TROPHY_DB_PATH, apollo_config.user_id);
-}
-
-void update_db_path(char* path)
-{
-	if (apollo_config.online_opt)
-	{
-		sprintf(path, "%s%016lX/", apollo_config.ftp_url, apollo_config.account_id);
-		return;
-	}
-
-	strcpy(path, apollo_config.save_db);
-}
-
-void update_vmc_path(char* path)
-{
-	if (file_exists(path) == SUCCESS)
-		return;
-
-	path[0] = 0;
-}
-
 static void initLocalization(void)
 {
 	char path[256];
@@ -496,47 +298,21 @@ static void initLocalization(void)
 			LOG("Localization file not found: %s", path);
 	}
 
-	hdd_saves.title = _("HDD Saves");
 	usb_saves.title = _("USB Saves");
-	trophies.title = _("Trophies");
 	user_backup.title = _("User Tools");
-	online_saves.title = _("Online Database");
-	vmc1_saves.title = _("PS1 Virtual Memory Card");
-	vmc2_saves.title = _("PS2 Virtual Memory Card");
-	vmu_saves.title = _("DC Virtual Memory Card");
 }
 
 static void registerSpecialChars(void)
 {
-	// Register save tags
-	RegisterSpecialCharacter(CHAR_TAG_PS1, 0, 1.5, &menu_textures[tag_ps1_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS2, 0, 1.5, &menu_textures[tag_ps2_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS3, 2, 1.5, &menu_textures[tag_ps3_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PS4, 2, 1.5, &menu_textures[tag_ps4_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSP, 2, 1.5, &menu_textures[tag_psp_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_PSV, 2, 1.5, &menu_textures[tag_psv_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_DC, 2, 1.5, &menu_textures[tag_dc_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_VMC, 2, 1.0, &menu_textures[tag_vmc_png_index]);
+	// Register menu icons
 	RegisterSpecialCharacter(CHAR_TAG_LOCKED, 0, 1.3, &menu_textures[tag_lock_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_OWNER, 0, 1.3, &menu_textures[tag_own_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_WARNING, 0, 1.3, &menu_textures[tag_warning_png_index]);
 	RegisterSpecialCharacter(CHAR_TAG_APPLY, 2, 1.0, &menu_textures[tag_apply_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_ZIP, 0, 1.0, &menu_textures[tag_zip_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_NET, 0, 1.0, &menu_textures[tag_net_png_index]);
-	RegisterSpecialCharacter(CHAR_TAG_TRANSFER, 0, 1.0, &menu_textures[tag_transfer_png_index]);
+	RegisterSpecialCharacter(CHAR_TAG_WARNING, 0, 1.3, &menu_textures[tag_warning_png_index]);
 
 	// Register button icons
 	RegisterSpecialCharacter(orbisPadGetConf()->crossButtonOK ? CHAR_BTN_X : CHAR_BTN_O, 0, 1.2, &menu_textures[footer_ico_cross_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_S, 0, 1.2, &menu_textures[footer_ico_square_png_index]);
-	RegisterSpecialCharacter(CHAR_BTN_T, 0, 1.2, &menu_textures[footer_ico_triangle_png_index]);
 	RegisterSpecialCharacter(orbisPadGetConf()->crossButtonOK ? CHAR_BTN_O : CHAR_BTN_X, 0, 1.2, &menu_textures[footer_ico_circle_png_index]);
-
-	// Register trophy icons
-	RegisterSpecialCharacter(CHAR_TRP_BRONZE, 2, 0.9f, &menu_textures[trp_bronze_png_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SILVER, 2, 0.9f, &menu_textures[trp_silver_png_index]);
-	RegisterSpecialCharacter(CHAR_TRP_GOLD, 2, 0.9f, &menu_textures[trp_gold_png_index]);
-	RegisterSpecialCharacter(CHAR_TRP_PLATINUM, 0, 0.9f, &menu_textures[trp_platinum_png_index]);
-	RegisterSpecialCharacter(CHAR_TRP_SYNC, 0, 0.9f, &menu_textures[trp_sync_png_index]);
 }
 
 static void terminate(void)
@@ -683,11 +459,10 @@ s32 main(s32 argc, const char* argv[])
 		notify_popup(NOTIFICATION_ICON_DEFAULT, "%s\n%s", _("Debug Logging Enabled"), APOLLO_PATH "lucente.log");
 	}
 
-	// Unpack application data on first run
+	// Unpack the bundled save patches (cheats) on first run of each version
 	if (strncmp(apollo_config.app_ver, APOLLO_VERSION, sizeof(apollo_config.app_ver)) != 0)
 	{
 		LOG("Unpacking application data...");
-//		clean_directory(APOLLO_DATA_PATH);
 		if (extract_zip(APOLLO_APP_PATH "misc/appdata.zip", APOLLO_DATA_PATH))
 			notify_popup(NOTIFICATION_ICON_DEFAULT, _("Successfully installed local application data"));
 
@@ -695,16 +470,10 @@ s32 main(s32 argc, const char* argv[])
 		save_app_settings(&apollo_config);
 	}
 
-	// dedicated to Leon & Luna ~ in loving memory
-
 #ifndef APOLLO_ENABLE_LOGGING
 	// Splash screen logo (fade-in)
 	drawSplashLogo(1);
 #endif
-
-	// Setup font
-	SetExtraSpace(-15);
-	SetCurrentFont(font_adonais_regular);
 
 	registerSpecialChars();
 	initMenuOptions();
@@ -713,8 +482,6 @@ s32 main(s32 argc, const char* argv[])
 	// Splash screen logo (fade-out)
 	drawSplashLogo(-1);
 #endif
-	SDL_DestroyTexture(menu_textures[buk_scr_png_index].texture);
-	
 	//Set options
 	update_callback(!apollo_config.update);
 

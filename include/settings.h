@@ -1,5 +1,5 @@
-#define APOLLO_VERSION          "2.4.0"     //Apollo PS4 version (about menu)
-#define APOLLO_PLATFORM         "PS4"       //Apollo platform
+#define APOLLO_VERSION          "2.4.0"     //App version (about menu)
+#define APOLLO_PLATFORM         "PS4"       //App platform
 
 #define MENU_TITLE_OFF          45          //Offset of menu title text from menu mini icon
 #define MENU_ICON_OFF           105         //X Offset to start printing menu mini icon
@@ -31,17 +31,13 @@ typedef struct
     char app_name[8];
     char app_ver[8];
     uint8_t music;
-    uint8_t doSort;
     uint8_t doAni;
     uint8_t update;
     uint8_t usb_dev;
-    uint8_t online_opt;
     uint8_t dbglog;
     uint32_t user_id;
     uint64_t psid[2];
     uint64_t account_id;
-    char save_db[256];
-    char ftp_url[512];
 } app_config_t;
 
 extern menu_option_t menu_options[];
@@ -51,5 +47,3 @@ void music_callback(int sel);
 void update_callback(int sel);
 
 int get_firmware_version(void);
-int save_xml_owner(const char *xmlfile);
-int get_xml_owners(const char *xmlfile, int cmd, char*** nam, char*** val);

@@ -80,24 +80,6 @@ jobs:
         path: ${{ env.sdl_path }}
         ref: ps4
 
-    - name: Checkout mxml
-      uses: actions/checkout@v4
-      with:
-        repository: bucanero/mxml
-        path: mxml
-
-    - name: Checkout libunrar
-      uses: actions/checkout@v4
-      with:
-        repository: bucanero/libunrar-ps3
-        path: libunrar-ps3
-
-    - name: Checkout libun7zip
-      uses: actions/checkout@v4
-      with:
-        repository: bucanero/libun7zip
-        path: libun7zip
-
     - name: Checkout libjbc
       uses: actions/checkout@v4
       with:
@@ -172,18 +154,6 @@ jobs:
       working-directory: libSQLite-ps4
       run: make install
 
-    - name: Install libun7zip
-      working-directory: libun7zip
-      run: make -f Makefile.PS4 install
-
-    - name: Install libunrar-ps3
-      working-directory: libunrar-ps3
-      run: make -f Makefile.PS4 install
-
-    - name: Install mini xml
-      working-directory: mxml/ps4
-      run: make install
-
     - name: Install libjbc
       working-directory: ps4-libjbc
       run: make install
@@ -231,7 +201,7 @@ jobs:
     - name: Add save patches to Package
       run: make createzip
 
-    - name: Build Apollo App Package
+    - name: Build App Package
       run: |
         make
         mv IV0000-LUCE00001_00-LUCENTE000000PS4.pkg lucente-ps4-build_${{ env.sha_name }}.pkg

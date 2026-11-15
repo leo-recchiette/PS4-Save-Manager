@@ -8,7 +8,7 @@ CONTENT_ID  := IV0000-LUCE00001_00-LUCENTE000000PS4
 LIBS        := -lc -lkernel -lc++ -lSceAudioOut -lSceUserService -lScePigletv2VSH -lSceSysmodule -lSceFreeType -lSQLite \
                -lScePad -lSceSystemService -lSceSaveData -lSceCommonDialog -lSceMsgDialog -lSceNet -lSceNetCtl -lcurl \
                -lmbedtls -lmbedx509 -lmbedcrypto -lmini18n \
-               -lSceRegMgr -lSceImeDialog -lSDL2 -lapollo -ldbglogger -lz -lzip -ljbc -lmxml -lunrar -lun7zip -ls3m
+               -lSceRegMgr -lSceImeDialog -lSDL2 -lapollo -ldbglogger -lz -lzip -ljbc -ls3m
 
 # Additional compile flags.
 EXTRAFLAGS  := -fcolor-diagnostics -Wall -D__PS4__
@@ -93,7 +93,7 @@ clean: ## Remove all generated files.
 		$(INTDIR)/$(PROJDIR).elf $(INTDIR)/$(PROJDIR).oelf $(OBJS)
 
 #---------------------------------------------------------------------------------
-createzip: ## Download the latest appdata.zip cheat pack.
+createzip: ## Download the latest appdata.zip save patch pack (cheats).
 	@echo "Downloading appdata.zip ..."
 	@[ -d assets/misc ] || mkdir -p assets/misc
 	@rm -fr assets/misc/appdata.zip
@@ -105,6 +105,6 @@ help: ## Display this help message.
 	@echo "Available targets:"
 	@echo "  all              - Build the package."
 	@echo "  clean            - Remove all generated files."
-	@echo "  createzip        - Download the latest appdata.zip cheat pack."
+	@echo "  createzip        - Download the latest appdata.zip save patch pack (cheats)."
 	@echo "  help             - Display this help message."
 	@echo ""

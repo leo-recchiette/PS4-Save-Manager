@@ -16,19 +16,12 @@
 #define _i18n(str) (str)
 #define ORBIS_USER_SERVICE_USER_ID_INVALID	-1
 
-static const char * db_opt[] = {_i18n("Online DB"), _i18n("FTP Server"), NULL};
-static const char * sort_opt[] = {_i18n("Disabled"), _i18n("by Name"), _i18n("by Title ID"), _i18n("by Type"), NULL};
 static const char * usb_src[] = {"USB 0", "USB 1", "USB 2", "USB 3", "USB 4", "USB 5", "USB 6", "USB 7", _i18n("Fake USB"), _i18n("Auto-detect"), NULL};
 
 static void usb_callback(int sel);
 static void log_callback(int sel);
-static void sort_callback(int sel);
 static void ani_callback(int sel);
-static void db_url_callback(int sel);
 static void clearcache_callback(int sel);
-static void upd_appdata_callback(int sel);
-static void server_callback(int sel);
-static void ftp_url_callback(int sel);
 
 menu_option_t menu_options[] = {
 	{ .name = _i18n("Background Music"), 
@@ -43,12 +36,6 @@ menu_option_t menu_options[] = {
 		.value = &apollo_config.doAni, 
 		.callback = ani_callback 
 	},
-	{ .name = _i18n("Sort Saves"),
-		.options = sort_opt,
-		.type = APP_OPTION_LIST,
-		.value = &apollo_config.doSort,
-		.callback = sort_callback
-	},
 	{ .name = _i18n("USB Saves Source"),
 		.options = usb_src,
 		.type = APP_OPTION_LIST,
@@ -60,31 +47,6 @@ menu_option_t menu_options[] = {
 		.type = APP_OPTION_BOOL, 
 		.value = &apollo_config.update, 
 		.callback = update_callback 
-	},
-	{ .name = _i18n("Set User FTP Server URL"),
-		.options = NULL,
-		.type = APP_OPTION_CALL,
-		.spacer = 1,
-		.value = NULL,
-		.callback = ftp_url_callback
-	},
-	{ .name = _i18n("Online Saves Server"),
-		.options = db_opt,
-		.type = APP_OPTION_LIST,
-		.value = &apollo_config.online_opt,
-		.callback = server_callback
-	},
-	{ .name = _i18n("Update Application Data"),
-		.options = NULL, 
-		.type = APP_OPTION_CALL, 
-		.value = NULL, 
-		.callback = upd_appdata_callback 
-	},
-	{ .name = _i18n("Change Online Database URL"),
-		.options = NULL,
-		.type = APP_OPTION_CALL,
-		.value = NULL,
-		.callback = db_url_callback 
 	},
 	{ .name = _i18n("Clear Local Cache"),
 		.options = NULL, 
@@ -108,11 +70,6 @@ void music_callback(int sel)
 	apollo_config.music = !sel;
 }
 
-static void sort_callback(int sel)
-{
-	apollo_config.doSort = sel;
-}
-
 static void ani_callback(int sel)
 {
 	apollo_config.doAni = !sel;
@@ -123,91 +80,12 @@ static void usb_callback(int sel)
 	apollo_config.usb_dev = sel;
 }
 
-static void server_callback(int sel)
-{
-	apollo_config.online_opt = sel;
-	clean_directory(APOLLO_LOCAL_CACHE, ".txt");
-}
-
-static void db_url_callback(int sel)
-{
-	if (!osk_dialog_get_text(_("Enter the Online Database URL"), apollo_config.save_db, sizeof(apollo_config.save_db)))
-		return;
-
-	if (apollo_config.save_db[strlen(apollo_config.save_db)-1] != '/')
-		strcat(apollo_config.save_db, "/");
-
-	show_message("%s\n%s", _("Online database URL changed to:"), apollo_config.save_db);
-}
-
-static void ftp_url_callback(int sel)
-{
-	int ret;
-	char *data;
-	char tmp[512];
-
-	strncpy(tmp, apollo_config.ftp_url[0] ? apollo_config.ftp_url : "ftp://user:pass@192.168.0.10:21/folder/", sizeof(tmp));
-	if (!osk_dialog_get_text(_("Enter the FTP server URL"), tmp, sizeof(tmp)))
-		return;
-
-	strncpy(apollo_config.ftp_url, tmp, sizeof(apollo_config.ftp_url));
-
-	if (apollo_config.ftp_url[strlen(apollo_config.ftp_url)-1] != '/')
-		strcat(apollo_config.ftp_url, "/");
-
-	// test the connection
-	ftp_init();
-	init_loading_screen(_("Testing connection..."));
-	ret = ftp_download(apollo_config.ftp_url, "apollo.txt", APOLLO_LOCAL_CACHE "users.ftp", 0);
-	data = ret ? readTextFile(APOLLO_LOCAL_CACHE "users.ftp") : strdup("");
-
-	snprintf(tmp, sizeof(tmp), "%016lX", apollo_config.account_id);
-	if (strstr(data, tmp) == NULL)
-	{
-		LOG("Updating users index...");
-		FILE* fp = fopen(APOLLO_LOCAL_CACHE "users.ftp", "w");
-		if (fp)
-		{
-			fprintf(fp, "; Lucente Save Tool (" APOLLO_PLATFORM ") v" APOLLO_VERSION "\r\n%s\r\n", tmp);
-			fclose(fp);
-		}
-
-		ret = ftp_upload(APOLLO_LOCAL_CACHE "users.ftp", apollo_config.ftp_url, "apollo.txt", 0);
-	}
-	free(data);
-	stop_loading_screen();
-	ftp_end();
-
-	if (ret)
-	{
-		server_callback(1);
-		show_message("%s\n%s", _("FTP server URL changed to:"), apollo_config.ftp_url);
-	}
-	else
-		show_message("%s\n%s\n\n%s", _("Error! Couldn't connect to FTP server"), apollo_config.ftp_url, _("Check debug logs for more information"));
-}
-
 static void clearcache_callback(int sel)
 {
 	LOG("Cleaning folder '%s'...", APOLLO_LOCAL_CACHE);
 	clean_directory(APOLLO_LOCAL_CACHE, "");
 
 	show_message("%s\n%s", _("Local cache folder cleaned:"), APOLLO_LOCAL_CACHE);
-}
-
-static void upd_appdata_callback(int sel)
-{
-	int i;
-
-	if (!http_download(ONLINE_PATCH_URL, "apollo-ps4-update.zip", APOLLO_LOCAL_CACHE "appdata.zip", 1))
-		show_message(_("Error! Can't download data update file!"));
-
-	if ((i = extract_zip(APOLLO_LOCAL_CACHE "appdata.zip", APOLLO_DATA_PATH)) > 0)
-		show_message(_("Successfully updated %d save patch files!"), i);
-	else
-		show_message(_("Error! Can't extract data update file!"));
-
-	unlink_secure(APOLLO_LOCAL_CACHE "appdata.zip");
 }
 
 void update_callback(int sel)
@@ -351,7 +229,7 @@ int save_app_settings(app_config_t* config)
 	snprintf(filePath, sizeof(filePath), APOLLO_SETTING_PATH "settings.bin", mountResult.mountPathName);
 	write_buffer(filePath, (uint8_t*) config, sizeof(app_config_t));
 
-	updateSaveParams(mountResult.mountPathName, "Lucente Save Tool", _("User Settings"), "www.bucanero.com.ar", 0);
+	updateSaveParams(mountResult.mountPathName, "Lucente Save Tool", _("User Settings"), "github.com/leo-recchiette/lucente-save-tool-ps4", 0);
 	if (sceSaveDataUmount((void*)&mountResult.mountPathName) < 0)
 	{
 		LOG("UMOUNT ERROR");

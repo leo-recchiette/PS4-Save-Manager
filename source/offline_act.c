@@ -2,14 +2,10 @@
 #include <string.h>
 #include <orbis/RegMgr.h>
 
-/* https://github.com/oct0xor/ps4_registry_editor/blob/master/Ps4EditLib/PsRegistry/Preferences.cs#L133 */
-#define REGMGR_SECURITY_PARENTAL_PASSCODE (0x03800800)
-
 #define SIZE_account_id     8
 #define SIZE_NP_env         17
 #define SIZE_login_flag     4
 #define SIZE_user_name      17
-#define SIZE_passcode       17
 
 #define KEY_account_id(a)   Get_Entity_Number(a, 16, 65536, 125830400, 125829120)
 #define KEY_NP_env(a)       Get_Entity_Number(a, 16, 65536, 125874183, 125874176)
@@ -52,8 +48,3 @@ int regMgr_GetUserName(int userNumber, char* outString)
     return sceRegMgrGetStr(KEY_user_name(userNumber), outString, SIZE_user_name);
 }
 
-// https://github.com/nekohaku/ps4-parental-controls/blob/main/source/main.c
-int regMgr_GetParentalPasscode(char* buff)
-{
-    return sceRegMgrGetStr(REGMGR_SECURITY_PARENTAL_PASSCODE, buff, SIZE_passcode);
-}

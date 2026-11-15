@@ -6,52 +6,12 @@
 #include <sys/file.h>
 #include <sys/stat.h>
 #include <dirent.h>
-#include <zlib.h>
 #include <orbis/SystemService.h>
 
 #include "types.h"
 #include "common.h"
 
 #define TMP_BUFF_SIZE 0x20000
-
-//----------------------------------------
-//String Utils
-//----------------------------------------
-int is_char_integer(char c)
-{
-	if (c >= '0' && c <= '9')
-		return SUCCESS;
-	return FAILED;
-}
-
-int is_char_letter(char c)
-{
-	if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z'))
-		return SUCCESS;
-	return FAILED;
-}
-
-char * safe_strncpy(char *dst, const char* src, size_t size)
-{
-    strncpy(dst, src, size);
-    dst[size - 1] = '\0';
-    return dst;
-}
-
-char * rstrip(char *s)
-{
-    char *p = s + strlen(s);
-    while (p > s && isspace(*--p))
-        *p = '\0';
-    return s;
-}
-
-char * lskip(const char *s)
-{
-    while (*s != '\0' && isspace(*s))
-        ++s;
-    return (char *)s;
-}
 
 //----------------------------------------
 //FILE UTILS
@@ -158,65 +118,6 @@ int copy_file(const char* input, const char* output)
     chmod(output, 0777);
 
     return (read - written);
-}
-
-uint32_t file_crc32(const char* input)
-{
-    Bytef *buffer;
-    uLong crc = crc32(0L, Z_NULL, 0);
-    size_t read;
-
-    FILE* in = fopen(input, "rb");
-    
-    if (!in)
-        return FAILED;
-
-    buffer = malloc(TMP_BUFF_SIZE);
-    do
-    {
-        read = fread(buffer, 1, TMP_BUFF_SIZE, in);
-        crc = crc32(crc, buffer, read);
-    }
-    while (read == TMP_BUFF_SIZE);
-
-    free(buffer);
-    fclose(in);
-
-    return crc;
-}
-
-int copy_directory(const char* startdir, const char* inputdir, const char* outputdir)
-{
-    char fullname[256];
-    char out_name[256];
-    struct dirent *dirp;
-    int len = strlen(startdir);
-    DIR *dp = opendir(inputdir);
-
-    if (!dp) {
-        return FAILED;
-    }
-
-    while ((dirp = readdir(dp)) != NULL) {
-        if ((strcmp(dirp->d_name, ".")  != 0) && (strcmp(dirp->d_name, "..") != 0)) {
-            snprintf(fullname, sizeof(fullname), "%s%s", inputdir, dirp->d_name);
-
-            if (dirp->d_type == DT_DIR) {
-                strcat(fullname, "/");
-                if (copy_directory(startdir, fullname, outputdir) != SUCCESS) {
-                    return FAILED;
-                }
-            } else {
-                snprintf(out_name, sizeof(out_name), "%s%s", outputdir, &fullname[len]);
-                if (copy_file(fullname, out_name) != SUCCESS) {
-                    return FAILED;
-                }
-            }
-        }
-    }
-    closedir(dp);
-
-    return SUCCESS;
 }
 
 int clean_directory(const char* inputdir, const char* filter)
