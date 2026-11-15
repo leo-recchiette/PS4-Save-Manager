@@ -24,12 +24,6 @@ static void ani_callback(int sel);
 static void clearcache_callback(int sel);
 
 menu_option_t menu_options[] = {
-	{ .name = _i18n("Background Music"), 
-		.options = NULL, 
-		.type = APP_OPTION_BOOL, 
-		.value = &apollo_config.music, 
-		.callback = music_callback 
-	},
 	{ .name = _i18n("Menu Animations"),
 		.options = NULL, 
 		.type = APP_OPTION_BOOL, 
@@ -64,11 +58,6 @@ menu_option_t menu_options[] = {
 	{ .name = NULL }
 };
 
-
-void music_callback(int sel)
-{
-	apollo_config.music = !sel;
-}
 
 static void ani_callback(int sel)
 {

@@ -9,7 +9,6 @@
 #include <dirent.h>
 #include <stdbool.h>
 #include <orbis/Sysmodule.h>
-#include <orbis/AudioOut.h>
 #include <orbis/CommonDialog.h>
 #include <orbis/Sysmodule.h>
 #include <orbis/SystemService.h>
@@ -29,15 +28,6 @@
 #include "libfont.h"
 #include "ttf_render.h"
 
-//Sound
-#include <s3m.h>
-#define SAMPLING_FREQ          48000 /* 48khz. */
-#define AUDIO_SAMPLES          256   /* audio samples */
-
-// Audio handle
-static int32_t audio = 0;
-
-
 #define load_menu_texture(name, type) \
 			if (!LoadMenuTexture(APOLLO_APP_PATH "images/" #name "." #type , name##_##type##_index)) return 0;
 
@@ -45,7 +35,6 @@ static int32_t audio = 0;
 app_config_t apollo_config = {
     .app_name = "LUCENTE",
     .app_ver = {0},
-    .music = 1,
     .doAni = 1,
     .update = 1,
     .dbglog = 0,
@@ -199,57 +188,6 @@ static int LoadTextures_Menu(void)
 	return 1;
 }
 
-static int LoadSounds(void* data)
-{
-	s3m_t s3m;
-
-	s3m_initialize(&s3m, SAMPLING_FREQ);
-	// Decode a mp3 file to play
-	if (s3m_load(&s3m, APOLLO_APP_PATH "audio/haiku.s3m") < 0)
-	{
-		LOG("[ERROR] Failed to decode audio file");
-		return -1;
-	}
-	LOG("Loaded audio file: %s", s3m.header->song_name);
-
-	// Calculate the sample count and allocate a buffer for the sample data accordingly
-	uint8_t *pSampleData = (uint8_t*) malloc(AUDIO_SAMPLES * 2 * sizeof(int16_t));
-
-	// Play the song in a loop
-	while (!close_app)
-	{
-		if (!apollo_config.music)
-		{
-			usleep(0x1000);
-			continue;
-		}
-
-		if (!s3m.rt.playing)
-		{
-			// If we reach the end of the file, seek back to the beginning.
-			s3m_play(&s3m);
-		}
-
-		// Decode the wav into pSampleData
-		s3m_sound_callback(NULL, pSampleData, AUDIO_SAMPLES * 2 * sizeof(int16_t));
-
-		/* Output audio */
-		sceAudioOutOutput(audio, NULL);	// NULL: wait for completion
-
-		if (sceAudioOutOutput(audio, pSampleData) < 0)
-		{
-			LOG("Failed to output audio");
-			return -1;
-		}
-	}
-
-	s3m_stop(&s3m);
-	s3m_unload(&s3m);
-	free(pSampleData);
-
-	return 0;
-}
-
 void update_usb_path(char* path)
 {
 	if (apollo_config.usb_dev < MAX_USB_DEVICES)
@@ -318,7 +256,6 @@ static void registerSpecialChars(void)
 static void terminate(void)
 {
 	LOG("Exiting...");
-	sceAudioOutClose(audio);
 	mini18n_close();
 	terminate_jbc();
 	sceSystemServiceLoadExec("exit", NULL);
@@ -374,23 +311,6 @@ s32 main(s32 argc, const char* argv[])
 	initInternal();
 	http_init();
 	initPad();
-
-	// Initialize audio output library
-	if (sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_AUDIOOUT) < 0 ||
-		sceAudioOutInit() != SUCCESS)
-	{
-		LOG("[ERROR] Failed to initialize audio output");
-		return (-1);
-	}
-
-	// Open a handle to audio output device
-	audio = sceAudioOutOpen(ORBIS_USER_SERVICE_USER_ID_SYSTEM, ORBIS_AUDIO_OUT_PORT_TYPE_MAIN, 0, AUDIO_SAMPLES, SAMPLING_FREQ, ORBIS_AUDIO_OUT_PARAM_FORMAT_S16_STEREO);
-
-	if (audio <= 0)
-	{
-		LOG("[ERROR] Failed to open audio on main port");
-		return audio;
-	}
 
 	// Create a window context
 	LOG( "Creating a window");
@@ -484,9 +404,6 @@ s32 main(s32 argc, const char* argv[])
 #endif
 	//Set options
 	update_callback(!apollo_config.update);
-
-	// Start BGM audio thread
-	SDL_CreateThread(&LoadSounds, "audio_thread", NULL);
 
 #ifndef APOLLO_ENABLE_LOGGING
 	Draw_MainMenu_Ani();

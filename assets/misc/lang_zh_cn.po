@@ -100,10 +100,6 @@ msgstr "伪装 USB (Fake USB)"
 msgid "Auto-detect"
 msgstr "自动检测"
 
-#: settings.c:34
-msgid "Background Music"
-msgstr "背景音乐"
-
 #: settings.c:40
 msgid "Menu Animations"
 msgstr "菜单动画效果"

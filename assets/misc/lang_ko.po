@@ -103,10 +103,6 @@ msgstr "가짜 USB"
 msgid "Auto-detect"
 msgstr "자동 감지"
 
-#: settings.c:34
-msgid "Background Music"
-msgstr "배경 음악"
-
 #: settings.c:40
 msgid "Menu Animations"
 msgstr "메뉴 애니메이션"

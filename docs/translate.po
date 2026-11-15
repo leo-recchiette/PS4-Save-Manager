@@ -103,10 +103,6 @@ msgstr ""
 msgid "Auto-detect"
 msgstr ""
 
-#: settings.c:34
-msgid "Background Music"
-msgstr ""
-
 #: settings.c:40
 msgid "Menu Animations"
 msgstr ""

@@ -19,4 +19,5 @@ The history of the original project is in the [Apollo Save Tool changelog](https
 ### Removed
 
 * Everything that is not bulk save copy/resign or offline account activation: per-save actions other than cheats, HDD saves, decrypted saves, trophies, online database, FTP upload and web server, PS1/PS2/Dreamcast memory cards, App.db tools, archive extraction.
+* Background music.
 * Settings for save sorting, online database, FTP server and save-patch updates (patches now update with the pkg).

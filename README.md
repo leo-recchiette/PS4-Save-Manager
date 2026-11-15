@@ -77,7 +77,6 @@ Lucente Save Tool is based on [Apollo Save Tool](https://github.com/bucanero/apo
 * [flatz](https://github.com/flatz): [SFO tools](https://github.com/bucanero/pfd_sfo_tools/)
 * [aldostools](https://aldostools.org/): [Bruteforce Save Data](https://bruteforcesavedata.forumms.net/)
 * [Manrope](https://github.com/sharanda/manrope) font (OFL) and [Material Symbols](https://fonts.google.com/icons) (Apache 2.0)
-* [Nobody/Wild Light](https://github.com/nobodo): [Background music track](https://github.com/bucanero/apollo-vita/blob/main/data/haiku.s3m)
 
 ## Translators
 
@@ -94,7 +93,6 @@ You need to have installed:
 - [libZip](https://github.com/bucanero/oosdk_libraries/tree/master/libzip-1.9.2) library
 - [SDL2](https://github.com/PacBrew/SDL/tree/ps4) library
 - [libJbc](https://github.com/bucanero/ps4-libjbc) library
-- [libs3m](https://github.com/bucanero/s3mplay) library
 - [libSQLite](https://github.com/bucanero/libSQLite-ps4) library
 - [mini18n](https://github.com/bucanero/mini18n) library
 - [dbglogger](https://github.com/bucanero/dbglogger) library

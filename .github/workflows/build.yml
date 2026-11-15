@@ -86,12 +86,6 @@ jobs:
         repository: bucanero/ps4-libjbc
         path: ps4-libjbc
 
-    - name: Checkout libs3m
-      uses: actions/checkout@v4
-      with:
-        repository: bucanero/s3mplay
-        path: s3mplay
-
     - name: Checkout mini18n
       uses: actions/checkout@v4
       with:
@@ -157,10 +151,6 @@ jobs:
     - name: Install libjbc
       working-directory: ps4-libjbc
       run: make install
-
-    - name: Install libs3m
-      working-directory: s3mplay
-      run: make -f Makefile.ps4 install
 
     - name: Cache SDL2
       id: cache-sdl2

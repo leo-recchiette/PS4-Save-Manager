@@ -17,7 +17,7 @@ make DEBUGLOG=1   # defines APOLLO_ENABLE_LOGGING (see below)
 make clean
 ```
 
-- Requires `OO_PS4_TOOLCHAIN` pointing at the OpenOrbis toolchain, with every library in the Makefile `LIBS` line installed into it (apollo-lib, dbglogger, mbedTLS 2.16.12, curl, libzip, SDL2 (PS4 port), libjbc, libs3m, SQLite, mini18n). `build.yml` is the authoritative step-by-step recipe for building and installing them (CI uses LLVM 12).
+- Requires `OO_PS4_TOOLCHAIN` pointing at the OpenOrbis toolchain, with every library in the Makefile `LIBS` line installed into it (apollo-lib, dbglogger, mbedTLS 2.16.12, curl, libzip, SDL2 (PS4 port), libjbc, SQLite, mini18n). `build.yml` is the authoritative step-by-step recipe for building and installing them (CI uses LLVM 12).
 - On macOS the Makefile hardcodes clang/ld.lld at `/usr/local/opt/llvm/bin/` (Intel Homebrew path); Linux uses `clang`/`ld.lld` from PATH.
 - All `source/*.c` files are compiled automatically (wildcard), with `-Iinclude`; objects go to `build/x64/Debug/`. Every file under `assets/` is packed into the pkg.
 - `sce_sys/param.sfo` is regenerated from Makefile metadata (`TITLE`, `VERSION`, `TITLE_ID`, `CONTENT_ID`).

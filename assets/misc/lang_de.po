@@ -105,10 +105,6 @@ msgstr "Fake-USB"
 msgid "Auto-detect"
 msgstr "Automatisch erkennen"
 
-#: settings.c:34
-msgid "Background Music"
-msgstr "Hintergrundmusik"
-
 #: settings.c:40
 msgid "Menu Animations"
 msgstr "Menüanimationen"

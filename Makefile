@@ -4,11 +4,11 @@ VERSION     := 02.40
 TITLE_ID    := LUCE00001
 CONTENT_ID  := IV0000-LUCE00001_00-LUCENTE000000PS4
 
-# Libraries linked into the ELF.
+# Libraries linked into the ELF (SceAudioOut is needed by SDL2, the app plays no audio).
 LIBS        := -lc -lkernel -lc++ -lSceAudioOut -lSceUserService -lScePigletv2VSH -lSceSysmodule -lSceFreeType -lSQLite \
                -lScePad -lSceSystemService -lSceSaveData -lSceCommonDialog -lSceMsgDialog -lSceNet -lSceNetCtl -lcurl \
                -lmbedtls -lmbedx509 -lmbedcrypto -lmini18n \
-               -lSceRegMgr -lSceImeDialog -lSDL2 -lapollo -ldbglogger -lz -lzip -ljbc -ls3m
+               -lSceRegMgr -lSceImeDialog -lSDL2 -lapollo -ldbglogger -lz -lzip -ljbc
 
 # Additional compile flags.
 EXTRAFLAGS  := -fcolor-diagnostics -Wall -D__PS4__

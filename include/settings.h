@@ -30,7 +30,6 @@ typedef struct
 {
     char app_name[8];
     char app_ver[8];
-    uint8_t music;
     uint8_t doAni;
     uint8_t update;
     uint8_t usb_dev;
@@ -43,7 +42,6 @@ typedef struct
 extern menu_option_t menu_options[];
 extern app_config_t apollo_config;
 
-void music_callback(int sel);
 void update_callback(int sel);
 
 int get_firmware_version(void);

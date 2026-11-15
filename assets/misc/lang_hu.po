@@ -103,10 +103,6 @@ msgstr "Hamis USB"
 msgid "Auto-detect"
 msgstr "Auto-detektálás"
 
-#: settings.c:34
-msgid "Background Music"
-msgstr "Háttérzene"
-
 #: settings.c:40
 msgid "Menu Animations"
 msgstr "Menü animációk"
