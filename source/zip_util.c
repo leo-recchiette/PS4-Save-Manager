@@ -75,6 +75,10 @@ int extract_zip(const char* zip_file, const char* dest_path)
 		if (filename[0] == '/')
 			filename++;
 
+		// zip-slip: never write outside dest_path
+		if (strstr(filename, ".."))
+			continue;
+
 		snprintf(path, sizeof(path)-1, "%s%s", dest_path, filename);
 		mkdirs(path);
 

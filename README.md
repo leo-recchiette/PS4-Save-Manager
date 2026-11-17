@@ -29,7 +29,7 @@ An encrypted PS4 save is two files: the save image and its 96-byte `.bin` key, i
 
 ![Bulk Resign tile](docs/screenshots/bulk-resign.png)
 
-1. Extract your save pack to `PS4/IMPORT/<GAME NAME>/` on the USB drive. Any folder depth works.
+1. Copy your save pack to `PS4/IMPORT/<GAME NAME>/` on the USB drive. Any folder depth works, and `.zip` files holding a Title ID folder (`CUSA09171/<save>` + `.bin`) are unpacked for you.
 2. Select **Bulk Resign** and confirm.
 3. The resigned copies appear in `PS4/SAVEDATA/<account-id>/`, with the same sub-folders:
 

@@ -18,7 +18,11 @@ typedef struct
 {
 	char* dir;      // folder that holds the save, ending with '/'
 	char* name;     // save image file name (the sealed key is <name>.bin)
+	const char* rel; // part of dir below the scanned root: kept in the destination
 } import_save_t;
+
+// where zipped saves are unpacked, mirroring their folders on the USB drive
+#define IMPORT_ZIP_PATH         IMPORT_TMP_PATH "zip/"
 
 static char host_buf[256];
 
@@ -227,7 +231,43 @@ static void activateAccount(int user)
 	show_message("%s\n%s", _("Account successfully activated!"), _("A system reboot is required"));
 }
 
-static void _find_encrypted_saves(const char* dir_path, list_t* list)
+// unpack every .zip below dir_path into IMPORT_ZIP_PATH, keeping its relative folder
+static void _extract_zips(const char* dir_path, size_t root_len)
+{
+	DIR *d = opendir(dir_path);
+	struct dirent *dir;
+	char path[1024];
+
+	if (!d)
+		return;
+
+	while ((dir = readdir(d)) != NULL)
+	{
+		size_t len = strlen(dir->d_name);
+
+		if (dir->d_name[0] == '.')
+			continue;
+
+		snprintf(path, sizeof(path), "%s%s", dir_path, dir->d_name);
+		if (dir->d_type == DT_DIR)
+		{
+			strcat(path, "/");
+			_extract_zips(path, root_len);
+		}
+		else if (dir->d_type == DT_REG && len > 4 && strcasecmp(dir->d_name + len - 4, ".zip") == 0)
+		{
+			char dest[1024];
+
+			snprintf(dest, sizeof(dest), IMPORT_ZIP_PATH "%s", dir_path + root_len);
+			if (!extract_zip(path, dest))
+				LOG("Error: can't extract (%s)", path);
+		}
+	}
+
+	closedir(d);
+}
+
+static void _find_encrypted_saves(const char* dir_path, size_t root_len, list_t* list)
 {
 	DIR *d;
 	struct dirent *dir;
@@ -247,7 +287,7 @@ static void _find_encrypted_saves(const char* dir_path, list_t* list)
 		if (dir->d_type == DT_DIR)
 		{
 			snprintf(path, sizeof(path), "%s%s/", dir_path, dir->d_name);
-			_find_encrypted_saves(path, list);
+			_find_encrypted_saves(path, root_len, list);
 			continue;
 		}
 
@@ -263,6 +303,7 @@ static void _find_encrypted_saves(const char* dir_path, list_t* list)
 		import_save_t* item = malloc(sizeof(import_save_t));
 		item->dir = strdup(dir_path);
 		item->name = strdup(dir->d_name);
+		item->rel = item->dir + root_len;
 		list_append(list, item);
 	}
 
@@ -270,7 +311,7 @@ static void _find_encrypted_saves(const char* dir_path, list_t* list)
 }
 
 // returns 1 = resigned, 0 = error, 2 = skipped (already resigned)
-static int _resign_import_save(const import_save_t* item, const char* src_root, const char* dst_root, sfo_patch_t* patch)
+static int _resign_import_save(const import_save_t* item, const char* dst_root, sfo_patch_t* patch)
 {
 	int ret = 0;
 	uint64_t src_size, dst_size;
@@ -294,11 +335,11 @@ static int _resign_import_save(const import_save_t* item, const char* src_root, 
 	}
 
 	// shortcut: "already resigned" = same-size image + 96-byte key at the destination, compare contents if packs get replaced under the same name
-	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->dir + strlen(src_root), item->name);
+	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->rel, item->name);
 	if (get_file_size(dst, &dst_size) == SUCCESS && dst_size == 0x60)
 	{
 		snprintf(src, sizeof(src), "%s%s", item->dir, item->name);
-		snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->dir + strlen(src_root), item->name);
+		snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->rel, item->name);
 		if (get_file_size(src, &src_size) == SUCCESS && get_file_size(dst, &dst_size) == SUCCESS && src_size == dst_size)
 			return 2;
 	}
@@ -337,11 +378,11 @@ static int _resign_import_save(const import_save_t* item, const char* src_root, 
 	}
 
 	// Copy to the destination, keeping the original folder structure
-	snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->dir + strlen(src_root), item->name);
+	snprintf(dst, sizeof(dst), "%s%s%s", dst_root, item->rel, item->name);
 	LOG("Copying resigned save to <%s>...", dst);
 	ret = (copy_file(tmp_file, dst) == SUCCESS);
 
-	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->dir + strlen(src_root), item->name);
+	snprintf(dst, sizeof(dst), "%s%s%s.bin", dst_root, item->rel, item->name);
 	ret &= (copy_file(tmp_key, dst) == SUCCESS);
 
 end:
@@ -392,14 +433,20 @@ static void resignImportFolder(void)
 		return;
 	}
 
+	// shortcut: all zips are unpacked up front, needs free HDD space for the whole pack, unpack one by one if packs get big
+	clean_directory(IMPORT_ZIP_PATH, "");
+	_extract_zips(src_root, strlen(src_root));
+
 	init_loading_screen(_("Searching for save games..."));
 	list = list_alloc();
-	_find_encrypted_saves(src_root, list);
+	_find_encrypted_saves(src_root, strlen(src_root), list);
+	_find_encrypted_saves(IMPORT_ZIP_PATH, strlen(IMPORT_ZIP_PATH), list);
 	stop_loading_screen();
 
 	if (!list_count(list))
 	{
 		list_free(list);
+		clean_directory(IMPORT_ZIP_PATH, "");
 		show_message("%s\n%s", _("No encrypted save games found in:"), src_root);
 		return;
 	}
@@ -407,6 +454,7 @@ static void resignImportFolder(void)
 	if (!show_dialog(DIALOG_TYPE_YESNO, "%s %zu\n\n%s\n%s", _("Save games found:"), list_count(list), _("Resign and copy them to:"), dst_root))
 	{
 		_free_import_list(list);
+		clean_directory(IMPORT_ZIP_PATH, "");
 		return;
 	}
 
@@ -417,19 +465,20 @@ static void resignImportFolder(void)
 	for (node = list_head(list); (item = list_get(node)); node = list_next(node))
 	{
 		update_progress_bar(progress++, list_count(list), item->name);
-		switch (_resign_import_save(item, src_root, dst_root, &patch))
+		switch (_resign_import_save(item, dst_root, &patch))
 		{
 			case 1: done++; break;
 			case 2: skipped++; break;
 			default:
 				// the dialog only has room for a few names: the rest is in the log
 				if (++err_count <= 6)
-					snprintf(failed + strlen(failed), sizeof(failed) - strlen(failed), "\n! %.90s%.40s", item->dir + strlen(src_root), item->name);
+					snprintf(failed + strlen(failed), sizeof(failed) - strlen(failed), "\n! %.90s%.40s", item->rel, item->name);
 		}
 	}
 
 	end_progress_bar();
 	_free_import_list(list);
+	clean_directory(IMPORT_ZIP_PATH, "");
 
 	snprintf(info, sizeof(info), "%s\n%s %d%s%s", dst_root, _("Already resigned (skipped):"), skipped, failed, (err_count > 6) ? "\n..." : "");
 	_show_copy_result(_("Saves resigned:"), done, err_count, info);
